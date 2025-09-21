@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>特定商取引法に基づく表記</title>
+    <style>
+        :root {
+            --primary-color: #00c4cc;
+            --text-color: #0f3854;
+            --light-gray: #e9ecef;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: white;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.7;
+        }
+        h2 {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+            margin-top: 0;
+        }
+        dl {
+            margin: 0;
+            padding: 0;
+        }
+        dt {
+            font-weight: 600;
+            background-color: #f8f9fa;
+            border-top: 1px solid var(--light-gray);
+            padding: 12px;
+        }
+        dd {
+            margin: 0;
+            padding: 12px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        a {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .contact-section {
+            margin-top: 20px;
+            padding: 16px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>特定商取引法に基づく表記</h2>
+
+<p>本ウェブサイトは個人運営のサービスです。</p>
+
+<dl>
+    <dt>販売業者</dt>
+    <dd>森田 直樹</dd>
+
+    <dt>サービス名</dt>
+    <dd>TeKeep!（テイキープ）</dd>
+
+    <dt>サービス提供URL</dt>
+    <dd>https://tekeep.github.io</dd>
+
+    <dt>販売価格</dt>
+    <dd>料金プランページに記載の金額（消費税込み）</dd>
+
+    <dt>支払方法</dt>
+    <dd>クレジットカード決済（Stripe）</dd>
+
+    <dt>商品代金以外の必要料金</dt>
+    <dd>なし（サイトの閲覧に必要となるインターネット接続料金、通信料金等はお客様のご負担となります）</dd>
+
+    <dt>支払い時期</dt>
+    <dd>購入時に決済完了となります。</dd>
+
+    <dt>商品引渡し時期</dt>
+    <dd>決済完了後、直ちにサービスが利用可能となります。</dd>
+
+    <dt>返品・キャンセル</dt>
+    <dd>デジタルコンテンツの性質上、原則として返品・返金には応じられません。サービスの不具合により利用できない場合に限り、個別に対応いたします。</dd>
+
+    <dt>連絡先（住所・電話番号・メールアドレス）</dt>
+    <dd>
+        本サービスは個人運営のため、住所・電話番号・メールアドレスは、購入者からのご請求があった場合に、法令に基づき遅滞なく開示いたします。
+        お問い合わせの際は、下記のフォームよりご連絡ください。
+    </dd>
+</dl>
+
+<div class="contact-section">
+    <strong>お問い合わせ方法</strong><br>
+    ご不明点やご質問は、以下の問い合わせフォームよりご連絡ください。<br>
+    <a href="#" id="openContactFormLink">お問い合わせフォームへ</a>
+</div>
+
+<script>
+    // お問い合わせフォームへのリンクをクリックした際に、親ウィンドウにメッセージを送信
+    document.getElementById('openContactFormLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.parent.postMessage({ type: 'openContactModal' }, '*');
+    });
+
+    // コンテンツの高さを計算して親ウィンドウに送信する
+    function sendHeight() {
+        requestAnimationFrame(() => {
+            const height = document.body.scrollHeight;
+            window.parent.postMessage({ type: 'resize', height: height, source: 'tokushoho' }, '*');
+        });
+    }
+
+    // ページ読み込み時、ウィンドウリサイズ時に高さを送信
+    window.addEventListener('load', sendHeight);
+    window.addEventListener('resize', sendHeight);
+
+    // コンテンツの動的な変更を監視して高さを再送信
+    const observer = new MutationObserver(sendHeight);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<!-- SEO & OGP -->
+<meta name="description" content="TeKeep!は、電車やバスの通勤・通学費を節約するための無料シミュレーター。定期券と切符、どちらがお得？あなたの休日設定に合わせて、1年間の交通費が最も安くなる購入プランを簡単に見つけ、無駄な出費を抑えましょう。">
+<meta property="og:title" content="TeKeep! | あなたの交通費、最適化します">
+<meta property="og:description" content="TeKeep!は、電車やバスの通勤・通学費を節約するための無料シミュレーター。定期券と切符、どちらがお得？あなたの休日設定に合わせて、1年間の交通費が最も安くなる購入プランを簡単に見つけ、無駄な出費を抑えましょう。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tekeep.github.io">
+<meta property="og:image" content="https://tekeep.github.io/images/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+<!-- /SEO & OGP -->
+<title>TeKeep! | あなたの交通費、最適化します</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+:root {
+  --primary-color: #00c4cc; /* SmartHRを参考に、明るいティール系に */
+  --primary-hover-color: #00a9b0;
+  --accent-color: #f97316; /* バーの色と合わせたオレンジに */
+  --background-color: #f8f9fa;
+  --text-color: #0f3854;
+  --light-gray: #e9ecef;
+  --border-color: #ced4da;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; max-width: 980px; margin: 20px auto 0; background: var(--background-color); color: var(--text-color); padding: 0 15px 80px; } /* 下部の余白をpadding-bottomで確保 */
+h2 { margin-bottom: 8px; font-size: 2.25rem; font-weight: 700; color: var(--primary-color); text-align: center; }
+label { font-size: 14px; margin-bottom: 8px; display: inline-block; font-weight: 600; color: var(--primary-color); }
+input[type="text"], input[type="number"], input[type="date"], select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); font-size:16px; margin-bottom:6px; box-sizing:border-box; transition: border-color 0.2s, box-shadow 0.2s; background-color: white; }
+/* type="number"で表示されるスピナー（上下矢印）を非表示にする */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox用 */
+  appearance: textfield;
+}
+input:focus, select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 196, 204, 0.25); outline: none; }
+button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transition:0.2s; }
+#calculateBtn { padding: 12px 0; font-size: 16px; width: 100%; display: block; border-radius: 8px; }
+#calculateBtn { background: var(--primary-color); color: white; box-shadow: 0 4px 12px rgba(0, 196, 204, 0.3); transform: translateY(0); }
+#calculateBtn:hover { background: var(--primary-hover-color); box-shadow: 0 2px 8px rgba(0, 196, 204, 0.4); transform: translateY(-1px); }
+#calculateBtn:disabled { background: #adb5bd; cursor: not-allowed; }
+#bottomBtn { position:fixed; bottom:10px; left: 0; right: 0; z-index: 10; }
+.button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: white !important; /* aタグのデフォルト色を上書き */
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+.input-container { display: flex; flex-direction: column; gap: 20px; }
+.input-section {
+  --card-padding: 24px; /* カードのパディングを変数として定義 */
+  background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: var(--card-padding) var(--card-padding) 16px;
+  overflow: hidden; /* はみ出した子要素をクリップして角丸を維持する */
+}
+.section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+.section-header svg { width: 20px; height: 20px; fill: var(--primary-color); }
+.section-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+.input-group { margin-bottom: 5px; }
+.input-section .input-group:not(:first-child) { border-top: 1px solid var(--light-gray); padding-top: 12px; margin-top: 12px; } 
+.input-section .input-group:last-child { margin-bottom: 0; } 
+/* --- トグルスイッチのスタイルを再設計 --- */
+.toggle-switch {
+  --switch-width: 40px;
+  --switch-height: 22px;
+  --thumb-size: 18px;
+  --switch-padding: 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.toggle-switch input[type="checkbox"] { display: none; } /* チェックボックス自体は非表示 */
+.toggle-switch .slider { display: block; width: var(--switch-width); height: var(--switch-height); background-color: #ccc; border-radius: var(--switch-height); position: relative; transition: background-color 0.2s; }
+.toggle-switch .slider::before { content: ''; position: absolute; top: var(--switch-padding); left: var(--switch-padding); width: var(--thumb-size); height: var(--thumb-size); background-color: white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: transform 0.2s; }
+.toggle-switch input:checked + .slider { background-color: var(--primary-color); }
+.toggle-switch input:checked + .slider::before { transform: translateX(calc(var(--switch-width) - var(--thumb-size) - (var(--switch-padding) * 2))); }
+.toggle-label { color: var(--primary-color); font-weight: 600; font-size: 14px; }
+.input-with-unit { display: flex; align-items: center; gap: 8px; }
+.input-with-unit span { font-weight: 600; color: var(--text-color); }
+/* --- ここまで --- */ 
+/* --- 休日設定UIのスタイル --- */
+.day-settings-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.day-setting-row { display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; padding: 4px 12px; box-sizing: border-box; }
+.day-setting-row .day-label { font-weight: 600; font-size: 14px; color: var(--primary-color); }
+.day-setting-row select { width: auto; min-width: 120px; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 14px; position: relative; top: 3px; }
+.day-setting-row > div { display: flex; align-items: center; gap: 8px; } /* ラベルとセレクトボックスを垂直中央揃えにする */
+.custom-holiday-input { display: flex; gap: 8px; }
+.custom-holiday-input input { flex-grow: 1; }
+.custom-holiday-input button { padding: 0 12px; background-color: var(--light-gray); color: var(--text-color); }
+.holiday-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; padding-left: 0; }
+.holiday-tag { list-style-type: none; background-color: var(--light-gray); padding: 4px 8px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.holiday-tag.is-national-holiday { background-color: #fff0f0; border: 1px solid #fecaca; }
+.holiday-tag button { background: none; border: none; font-size: 16px; cursor: pointer; color: #6c757d; padding: 0; line-height: 1; }
+.holiday-tag button:hover { color: var(--text-color); }
+/* --- ここまで --- */
+/* --- 設定用カレンダーのスタイル --- */
+.setting-calendar-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 12px; }
+.week-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-weight: 600; text-align: center; margin-bottom: 4px; font-size: 12px; color: #495057; }
+.setting-month-container { min-width: 280px; }
+.setting-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.setting-calendar-cell { background-color: #fff; border: 1px solid #eee; border-radius: 4px; padding: 4px; aspect-ratio: 1 / 1; font-size: 12px; text-align: center; cursor: pointer; transition: background-color 0.2s, transform 0.1s; display: flex; align-items: center; justify-content: center; }
+.setting-calendar-cell:hover { transform: scale(1.05); }
+.setting-calendar-cell.is-holiday { background-color: #fff0f0; }
+.setting-calendar-cell.is-other-month { background-color: var(--background-color); color: #ccc; cursor: default; }
+.setting-calendar-cell.is-custom-holiday { background-color: #fff5e6; border: 1px solid #ffe8cc; } /* カスタム休日: 薄いオレンジ */
+.setting-calendar-cell.is-custom-workday { background-color: #e6f9f0; border: 1px solid #cce9d4; } /* カスタム勤務日: 薄い緑 */
+.upgrade-notice-footer a {
+  font-weight: 600;
+  text-decoration: underline;
+  color: var(--primary-color); /* リンク色をプライマリカラーに設定 */
+}
+.upgrade-notice-footer a:hover {
+  color: var(--primary-hover-color);
+}
+.upgrade-notice-footer {
+  display: none; /* JSで表示を制御 */
+  font-size: 13px;
+  color: #495057;
+  margin: 16px calc(-1 * var(--card-padding)) calc(-1 * var(--card-padding) + 8px); /* カードのパディングを相殺 */
+  padding: 12px var(--card-padding);
+  background-color: #f8f9fa;
+  border-top: 1px solid var(--light-gray);
+}
+@media (min-width: 768px) {
+  #holidayToggleLabel {
+    max-width: calc(50% - 10px - var(--card-padding));
+  }
+  .input-container { flex-direction: row; align-items: flex-start; }
+  .input-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+  .input-col:first-child { justify-content: space-between; }
+}
+.logo-img { max-width: 180px; height: auto; margin-bottom: 8px; }
+.header-catchphrase { font-size: 1rem; color: #495057; margin-top: 0; }
+.notice-box {
+  display: flex;
+  gap: 12px;
+  background-color: #fff9f2; /* accent-colorの薄い色 */
+  border: 1px solid #fed7aa;
+  border-left: 5px solid var(--accent-color);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 24px;
+}
+.notice-box .notice-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--accent-color);
+}
+
+/* --- ハンバーガーメニュー --- */
+.hamburger-menu { position: fixed; top: 10px; right: 15px; z-index: 1000; }
+.menu-btn {
+  width: 40px; height: 40px; background-color: var(--primary-color); border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.menu-btn span { display: block; width: 20px; height: 2px; background-color: white; border-radius: 1px; transition: all 0.3s; }
+.menu-btn.is-active span:nth-of-type(1) { transform: translateY(7px) rotate(45deg); }
+.menu-btn.is-active span:nth-of-type(2) { opacity: 0; }
+.menu-btn.is-active span:nth-of-type(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.nav-menu {
+  position: fixed; top: 0; right: 0; width: 250px; height: 100%;
+  background-color: white; box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 999;
+  padding-top: 60px;
+}
+.nav-menu.is-active { transform: translateX(0); }
+.nav-menu ul { list-style: none; padding: 0; margin: 0; }
+.nav-menu li a {
+  display: block; padding: 15px 20px; color: var(--text-color); text-decoration: none;
+  font-weight: 600; border-bottom: 1px solid var(--light-gray);
+  transition: background-color 0.2s;
+}
+.nav-menu li a:hover { background-color: var(--light-gray); }
+.nav-menu li a i {
+  margin-right: 10px;
+  color: var(--primary-color);
+  position: relative; top: 1px; /* アイコンを1px下に移動 */
+}
+#openPricingModal i {
+  top: 0; /* 料金プランのアイコンだけ位置をリセット */
+}
+
+/* --- モーダルウィンドウ --- */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000;
+  opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+}
+.modal-overlay.is-visible { opacity: 1; visibility: visible; }
+.modal-content {
+  background-color: white; border-radius: 12px;
+  width: 90%; max-width: 800px; height: 80%; overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  display: flex; flex-direction: column;
+  transform: scale(0.9); transition: transform 0.3s;
+}
+.modal-overlay.is-visible .modal-content { transform: scale(1); }
+.modal-header { padding: 12px 20px; border-bottom: 1px solid var(--light-gray); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h4 { margin: 0; font-size: 16px; }
+.modal-close-btn { font-size: 24px; color: #888; cursor: pointer; background: none; border: none; }
+.modal-body { flex-grow: 1; padding: 0; overflow-y: auto; } /* overflow-y: auto に変更 */
+.modal-body iframe { width: 100%; height: 100%; border: 0; }
+</style>
+<style>
+/* --- フッター --- */
+footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+  font-size: 13px;
+}
+footer a { color: #6c757d; text-decoration: none; margin: 0 10px; }
+footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="hamburger-menu">
+  <div class="menu-btn">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav class="nav-menu">
+  <ul>
+    <!-- 将来の拡張用のメニュー項目 -->
+    <li><a href="#" id="openPricingModal"><i class="fa-solid fa-fw fa-gem"></i>料金プラン</a></li>
+    <li><a href="#" id="openLicenseForm" style="border-bottom: none;"><i class="fa-solid fa-fw fa-key"></i>ライセンス認証</a></li>
+    <!-- <li><a href="#" id="openContactForm" style="border-bottom: none;"><i class="fa-solid fa-fw fa-envelope"></i>お問い合わせ</a></li> -->
+  </ul>
+</nav>
+
+<header style="text-align: center; margin-bottom: 34px;">
+  <a href="index.html" style="text-decoration: none; display: inline-block;">
+    <img src="images/logo.png" alt="TeKeep! - 交通費節約シミュレーターのロゴ" class="logo-img">
+  </a>
+  <h1 class="header-catchphrase" style="font-size: 1.1rem; font-weight: 600; margin-top: 4px;">通勤・通学の交通費を節約する定期券購入シミュレーター</h1>
+</header>
+
+<!-- ライセンス認証モーダル -->
+<div id="licenseModal" class="modal-overlay" style="--modal-max-width: 500px;">
+  <div class="modal-content" style="height: auto; max-width: var(--modal-max-width);">
+    <div class="modal-header">
+      <h4>ライセンス認証</h4>
+      <button class="modal-close-btn">&times;</button>
+    </div>
+    <iframe id="licenseIframe" src="license.html" style="width: 100%; border: 0; display: block; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"></iframe>
+  </div>
+</div>
+
+<!-- お問い合わせモーダル -->
+<div id="contactModal" class="modal-overlay">
+  <div class="modal-content" style="height: 90%;">
+    <div class="modal-header">
+      <h4>お問い合わせフォーム</h4>
+      <button class="modal-close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <iframe id="contactIframe" src="" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
+    </div>
+  </div>
+</div>
+
+<!-- 料金プランモーダル -->
+<div id="pricingModal" class="modal-overlay">
+  <div class="modal-content" style="height: auto; max-width: 860px;">
+    <div class="modal-header">
+      <h4>料金プラン</h4>
+      <button class="modal-close-btn">&times;</button>
+    </div>
+    <iframe id="pricingIframe" src="pricing.html" style="width: 100%; border: 0; display: block; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"></iframe>
+  </div>
+</div>
+
+<!-- 特定商取引法に基づく表記モーダル -->
+<div id="tokushohoModal" class="modal-overlay">
+  <div class="modal-content" style="height: 90%; max-width: 700px;">
+    <div class="modal-header">
+      <h4>特定商取引法に基づく表記</h4>
+      <button class="modal-close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <iframe id="tokushohoIframe" src="tokushoho.html" style="width: 100%; height: 100%; border: 0;"></iframe>
+    </div>
+  </div>
+</div>
+
+<div id="inputScreen">
+  <div class="input-container">
+    <div class="input-col">
+      <div class="input-section">
+        <div class="section-header">
+          <span style="background: var(--primary-color); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; line-height: 1; padding-right: 1px; box-sizing: border-box;">1</span>
+          <h3>交通費（運賃・定期代）を入力</h3>
+        </div>
+        <div class="input-group">
+          <label for="fare">片道運賃（円）</label>
+          <input type="text" id="fare" placeholder="例: 290" inputmode="numeric">
+        </div>
+        <div class="input-group">
+          <label class="toggle-switch" for="includeOneMonthPass" style="justify-content: space-between; width: 100%; margin-bottom: 8px;">
+            <span class="toggle-label">1ヶ月定期（円）</span>
+            <span><input type="checkbox" id="includeOneMonthPass" checked><span class="slider"></span></span>
+          </label>
+          <div id="oneMonthPassInput" style="display: block;" class="input-with-unit">
+            <input type="text" id="monthlyPass" placeholder="例: 11920" inputmode="numeric">
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="toggle-switch" for="includeThreeMonthPass" style="justify-content: space-between; width: 100%; margin-bottom: 8px;">
+            <span class="toggle-label">3ヶ月定期（円）</span>
+            <span><input type="checkbox" id="includeThreeMonthPass"><span class="slider"></span></span>
+          </label>
+          <div id="threeMonthPassInput" style="display: none;" class="input-with-unit">
+            <input type="text" id="threeMonthPass" placeholder="例: 33980" inputmode="numeric">
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="toggle-switch" for="includeSixMonthPass" style="justify-content: space-between; width: 100%; margin-bottom: 8px;">
+            <span class="toggle-label">6ヶ月定期（円）</span>
+            <span><input type="checkbox" id="includeSixMonthPass"><span class="slider"></span></span>
+          </label>
+          <div id="sixMonthPassInput" style="display: none;" class="input-with-unit">
+            <input type="text" id="sixMonthPass" placeholder="例: 64370" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="input-col">
+      <div class="input-section">
+        <div class="section-header">
+          <span style="background: var(--primary-color); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; line-height: 1;">2</span>
+          <h3>シミュレーション期間を設定</h3>
+        </div>
+        <div class="input-group">
+          <label for="startDate">シミュレーション開始日</label>
+          <input type="date" id="startDate">
+        </div>
+        <div class="input-group">
+          <label for="duration">シミュレーション期間（ヶ月）</label>
+          <select id="duration">
+            <!-- 2ヶ月から12ヶ月までの選択肢をここに生成 -->
+          </select>
+        </div>
+        <div id="upgrade-notice" class="upgrade-notice-footer">
+          <i class="fa-solid fa-gem" style="color: var(--primary-color);"></i>
+          <a href="#" id="open-pricing-from-notice">有料プラン</a>にアップグレードすると、<strong>数千円以上の節約</strong>につながることも。最大24ヶ月までシミュレーションできます。
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="input-container" style="margin-top: 20px;">
+    <div class="input-col" style="flex-basis: 100%; max-width: 100%;">
+      <div class="input-section">
+        <div class="section-header">
+          <span style="background: var(--primary-color); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; line-height: 1;">3</span>
+          <h3>休日を設定</h3>
+        </div>
+        <div class="input-group">
+          <!-- 「曜日ごとの設定」を小見出しとしてスタイル調整 -->
+          <label style="margin-bottom: 12px;">曜日ごとの設定</label>
+          <!-- 各曜日設定をインデントして親子関係を明確化 -->
+          <div class="day-settings-list" style="padding-left: 8px;">
+            <!-- 曜日ごとの設定カードをここに生成 -->
+          </div>
+        </div>
+        <div class="input-group">
+          <label id="holidayToggleLabel" class="toggle-switch" for="includeHolidays" style="justify-content: space-between; width: 100%; margin-bottom: 8px;">
+            <span class="toggle-label">祝日を休みに含む</span>
+            <span><input type="checkbox" id="includeHolidays" checked><span class="slider"></span></span>
+          </label>
+        </div>
+        <div class="input-group">
+          <label style="margin-bottom: 12px;">カスタム休日・勤務日</label>
+          <p style="font-size: 14px; color: #495057; margin-top: -8px; margin-bottom: 16px;">カレンダーの日付をクリックして、休日や勤務日を個別に設定できます。</p>
+          <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: -12px; margin-bottom: 8px;">
+            <label style="background: none; color: #495057; padding: 0; font-weight: 500; display: inline; margin-right: 6px;">週の始まり:</label>
+            <input type="radio" name="weekStart" value="0" id="weekStartSun" style="width: auto; margin-right: 4px; position: relative; top: -6px;" checked><label for="weekStartSun" style="background: none; color: #495057; padding: 0; font-weight: normal; display: inline; margin-right: 6px;">日曜</label>
+            <input type="radio" name="weekStart" value="1" id="weekStartMon" style="width: auto; margin-right: 4px; position: relative; top: -6px;"><label for="weekStartMon" style="background: none; color: #495057; padding: 0; font-weight: normal; display: inline;">月曜</label>
+          </div>
+          <div class="legend" style="margin-top: 5px; font-size: 13px; display: flex; flex-wrap: wrap; gap: 14px;">
+            <span style="display: flex; align-items: center; gap: 4px;"><i style="display:inline-block; width:16px; height:14px; background-color: #fff0f0; border: 1px solid #fecaca; border-radius: 2px;"></i> : 通常休日</span>
+            <span style="display: flex; align-items: center; gap: 4px;"><i style="display:inline-block; width:16px; height:14px; background-color: #fff5e6; border: 1px solid #ffe8cc; border-radius: 2px;"></i> : カスタム休日</span>
+            <span style="display: flex; align-items: center; gap: 4px;"><i style="display:inline-block; width:16px; height:14px; background-color: #e6f9f0; border: 1px solid #cce9d4; border-radius: 2px;"></i> : カスタム勤務日</span>
+          </div>
+          <ul id="custom-dates-tags" class="holiday-tags" style="min-height: 28px;"></ul>
+          <div class="setting-calendar-container" id="settingCalendarView"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="bottomBtn">
+  <button id="calculateBtn" style="display: block; max-width: 980px; margin: 0 auto; width: calc(100% - 30px);">計算する</button>
+  <button id="recalculateBtn" style="display:none;">再計算する</button>
+</div>
+
+<!-- ▼▼▼ 広告表示エリア ▼▼▼ -->
+<div id="ad-container-index" style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; margin-top: 24px; text-align: center;">
+  <!-- ここにAmazonアソシエイトなどの広告タグを挿入 -->
+</div>
+<!-- ▲▲▲ 広告表示エリア ▲▲▲ -->
+
+<div class="notice-box">
+  <div>
+    <div class="notice-header">
+      <svg xmlns="http://www.w3.org/2000/svg" height="22" viewBox="0 -960 960 960" width="22" fill="currentColor"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Z"/></svg>
+      <strong style="font-size: 16px;">ご注意</strong>
+    </div>
+    <div style="font-size: 13px; color: #495057; line-height: 1.6;">
+      TeKeep!（テイキープ！）は、入力された情報に基づき、数学的に最も交通費が安くなる購入パターンを計算するツールです。会社から交通費が支給されている場合など、本シミュレーション結果の利用は、ご所属の組織の規定に従ってください。本ツールの利用は、利用者の自己責任において行ってください。
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="#" id="openContactFooter">お問い合わせ</a>
+  <a href="#" id="openTokushohoModal">特定商取引法に基づく表記</a>
+  <span>&copy; 2025 TeKeep!</span>
+</footer>
+
+<!-- SupabaseのJavaScriptクライアントライブラリを読み込む -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script type="module">
+// 【重要】以下のURLとanonキーを、あなたのSupabaseプロジェクトのものに書き換えてください。
+const SUPABASE_URL = 'https://lfnzlvjgiakifuhtdtal.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbnpsdmpnaWFraWZ1aHRkdGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MDk4ODEsImV4cCI6MjA3NDM4NTg4MX0.-qySXufnh3II4xrX5ZZm-Ihd6D3s2u6Sek8ucGJuUuU';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/**
+ * 認証状態をサーバーと同期する
+ * @param {object} supabase - Supabaseクライアントインスタンス
+ */
+async function syncAuthState(supabase) {
+    const licenseKey = localStorage.getItem('licenseKey');
+    const deviceId = localStorage.getItem('deviceId');
+
+    // ローカルに認証情報がある場合のみ、サーバーに有効性を問い合わせる
+    if (licenseKey && deviceId) {
+        try {
+            const { data: response, error } = await supabase.functions.invoke('validate-device', {
+                body: { appName: "TeKeep!", licenseKey: licenseKey, deviceId: deviceId }
+            });
+
+            if (error) throw error;
+
+            // サーバー側でデバイスが無効と判断された場合 (他の端末で解除されたなど)
+            if (response.status === 'invalid') {
+                console.log('認証が無効化されたため、ローカルの認証情報をクリアします。');
+                localStorage.removeItem('licenseKey');
+                localStorage.removeItem('licensePlan');
+                localStorage.removeItem('licenseExpiresAt');
+                location.reload(); // ページをリロードしてUIを未認証状態に更新
+            }
+        } catch (e) {
+            console.error('認証状態の同期中にエラーが発生しました:', e);
+        }
+    }
+}
+
+import * as holiday_jp from "https://cdn.jsdelivr.net/npm/@holiday-jp/holiday_jp/+esm";
+
+const CACHE_VERSION = "1.0.0"; // キャッシュバージョンの定義をここに集約
+
+/**
+ * フォームから入力値を取得し、GASに渡すパラメータオブジェクトを作成する
+ */
+function getParamsFromForm() {
+  const isOneMonthChecked = document.getElementById('includeOneMonthPass').checked;
+  const isThreeMonthChecked = document.getElementById('includeThreeMonthPass').checked;
+  const isSixMonthChecked = document.getElementById('includeSixMonthPass').checked;
+
+  // --- 休日リストの生成と保存 ---
+  // 設計意図: GASへの計算用休日リストと、result.htmlへの表示用休日リストをここで生成し、
+  // 表示用はlocalStorageに保存する。
+  const { gasHolidays } = generateHolidayLists();
+
+  const params = {
+    // deviceIdがなければ新規作成し、localStorageに保存する
+    deviceId: (() => {
+      let uid = localStorage.getItem('deviceId');
+      if (!uid) { uid = 'device_' + Date.now(); localStorage.setItem('deviceId', uid); }
+      return uid;
+    })(),
+    fare: Number(document.getElementById('fare').value),
+    monthlyPass: isOneMonthChecked ? Number(document.getElementById('monthlyPass').value) || 0 : 0,
+    threeMonthPass: isThreeMonthChecked ? Number(document.getElementById('threeMonthPass').value) || 0 : 0,
+    sixMonthPass: isSixMonthChecked ? Number(document.getElementById('sixMonthPass').value) || 0 : 0,
+    startDate: document.getElementById('startDate').value,
+    durationInMonths: Number(document.getElementById('duration').value),
+    holidays: gasHolidays.join(','), // 生成した休日リストをカンマ区切りで渡す
+    licenseKey: localStorage.getItem('licenseKey'),
+    licensePlan: localStorage.getItem('licensePlan'),
+    cacheVersion: CACHE_VERSION, // 一元管理されたバージョンを渡す
+  };
+
+  // バリデーション
+  if (!(params.fare > 0) || !params.startDate) {
+    alert('正しい運賃と起算日を入力してください');
+    return null;
+  }
+  if (!isOneMonthChecked && !isThreeMonthChecked && !isSixMonthChecked) {
+    alert('比較する定期券種別を1つ以上選択してください。');
+    return null;
+  }
+  // 1ヶ月定期はデフォルトONのため、チェックが入っている場合のみバリデーションを行う
+  if (document.getElementById('includeOneMonthPass').checked && !(params.monthlyPass > 0)) { alert('1ヶ月定期代を正しく入力してください'); return null; }
+  if (isThreeMonthChecked && !(params.threeMonthPass > 0)) { alert('3ヶ月定期代を正しく入力してください'); return null; }
+  if (isSixMonthChecked && !(params.sixMonthPass > 0)) { alert('6ヶ月定期代を正しく入力してください'); return null; }
+
+  localStorage.setItem('deviceId', params.deviceId); // デバイスIDを保存
+  // 入力値をそのままLocalStorageに保存
+  ['fare', 'monthlyPass', 'threeMonthPass', 'sixMonthPass'].forEach(id => localStorage.setItem(id, document.getElementById(id).value));
+
+  localStorage.setItem('startDate', params.startDate);
+  localStorage.setItem('durationInMonths', params.durationInMonths);
+  // 休日設定の保存
+  localStorage.setItem('daySettings', JSON.stringify(getDaySettings()));
+  localStorage.setItem('includeHolidays', document.getElementById('includeHolidays').checked);
+  // getParamsFromFormではカスタム休日の保存は行わない。責務はhandleCalendarClickに統一。
+  // localStorage.setItem('customHolidays', JSON.stringify(Array.from(new Set(JSON.parse(localStorage.getItem('customHolidays') || '[]')))));
+  // localStorage.setItem('workingDays', JSON.stringify(Array.from(new Set(JSON.parse(localStorage.getItem('workingDays') || '[]')))));
+  // チェックボックスの状態も保存
+  localStorage.setItem('includeOneMonthPass', isOneMonthChecked);
+  localStorage.setItem('includeThreeMonthPass', isThreeMonthChecked);
+  localStorage.setItem('includeSixMonthPass', isSixMonthChecked);
+
+  return params;
+}
+
+/**
+ * 休日リストを生成する
+ * @returns {{gasHolidays: string[], calendarHolidays: string[]}}
+ */
+function generateHolidayLists() {
+  const gasHolidays = [];
+  const calendarHolidays = [];
+  const startDate = new Date(document.getElementById('startDate').value);
+  const duration = Number(document.getElementById('duration').value);
+  if (startDate && !isNaN(startDate.getTime()) && duration > 0) {
+    const simEndDate = new Date(startDate);
+    // シミュレーション期間の最終日をGASと合わせる (例: 2025/9/1から12ヶ月後 -> 2026/8/31)。-1することで正しい最終日になる。
+    const actualSimEndDate = addDays(addMonths(startDate, duration), -1);
+
+    const daySettings = getDaySettings();
+    const customHolidays = new Set(JSON.parse(localStorage.getItem('customHolidays') || '[]'));
+    const customWorkdays = new Set(JSON.parse(localStorage.getItem('workingDays') || '[]'));
+    const nationalHolidays = new Set();
+    if (document.getElementById('includeHolidays').checked && holiday_jp) {
+
+      // カレンダー表示とGASへの送信、両方をカバーする祝日を取得 (シミュレーション開始年の1月1日から、終了年の12月31日まで)
+      const calendarPeriodStart = new Date(startDate.getFullYear(), 0, 1);
+      const calendarPeriodEnd = new Date(actualSimEndDate.getFullYear(), 11, 31);
+      const holidays = holiday_jp.between(calendarPeriodStart, calendarPeriodEnd);
+      holidays.forEach(h => nationalHolidays.add(dateToKey(h.date)));
+    }
+
+    // カレンダー表示用とGAS送信用、両方の休日リストを一度に生成
+    for (let d = new Date(startDate.getFullYear(), 0, 1); d <= new Date(actualSimEndDate.getFullYear(), 11, 31); d.setDate(d.getDate() + 1)) {
+      const key = dateToKey(d);
+      if (isHoliday(key, d, daySettings, customHolidays, customWorkdays, nationalHolidays)) {
+        calendarHolidays.push(key);
+        // GASに渡すリストには、シミュレーション期間内の休日のみを追加
+        if (d >= startDate && d <= actualSimEndDate) {
+          gasHolidays.push(key);
+        }
+      }
+    }
+  }
+  // 重複を除去して返す
+  return {
+    gasHolidays: Array.from(new Set(gasHolidays)),
+    calendarHolidays: Array.from(new Set(calendarHolidays))
+  };
+}
+
+/**
+ * Supabaseからキャッシュを検索する
+ * @param {object} params - 検索パラメータ
+ * @param {object} supabase - Supabaseクライアントインスタンス
+ * @returns {Promise<object|null>} - キャッシュが見つかれば結果オブジェクト、なければnull
+ */
+async function findCacheInSupabase(params, supabase) {
+  const { data, error } = await supabase
+    .from('CALCULATION_LOGS')
+    .select('*')
+    .eq('DEVICE_ID', params.deviceId || "") // カラム名をDEVICE_IDに変更
+    .eq('FARE', Number(params.fare) || 0)
+    .eq('MONTHLY_PASS', Number(params.monthlyPass) || 0)
+    .eq('THREE_MONTH_PASS', Number(params.threeMonthPass) || 0)
+    .eq('SIX_MONTH_PASS', Number(params.sixMonthPass) || 0)
+    .eq('START_DATE', params.startDate || "")
+    .eq('DURATION_IN_MONTHS', params.durationInMonths || "")
+    .eq('HOLIDAYS_LIST', params.holidays || "") // 主キーの一部として検索
+    .eq('CACHE_VERSION', params.cacheVersion) // パラメータからバージョンを取得
+    .order('CREATED_AT', { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.error("Supabaseキャッシュの検索中にエラー:", error);
+    return null;
+  }
+
+  if (data && data.length > 0) {
+    console.log("Supabaseのキャッシュを利用しました。");
+    const log = data[0];
+    return {
+      status: "cache",
+      message: "過去の計算結果を再利用しました。",
+      result: {
+        totalCost: log.TOTAL_COST,
+        purchasePath: log.PURCHASE_PATH,
+        comparisonCosts: {
+          'すべて切符で利用': log.COST_ALL_TICKETS,
+          'ベースラインプラン': log.COST_BASELINE,
+          '月初購入プラン': log.COST_MONTHLY_ON_FIRST
+        },
+        holidays: params.holidays.split(',')
+      }
+    };
+  }
+  return null;
+}
+
+/**
+ * 計算結果をSupabaseに保存する
+ * @param {object} params - 計算時のパラメータ
+ * @param {object} result - GASからの計算結果
+ * @param {object} supabase - Supabaseクライアントインスタンス
+ */
+async function saveLogToSupabase(params, result, supabase) {
+  const newLogPayload = {
+    DEVICE_ID: params.deviceId, // カラム名をDEVICE_IDに変更
+    FARE: params.fare,
+    MONTHLY_PASS: params.monthlyPass,
+    THREE_MONTH_PASS: params.threeMonthPass,
+    SIX_MONTH_PASS: params.sixMonthPass,
+    START_DATE: params.startDate,
+    DURATION_IN_MONTHS: params.durationInMonths,
+    HOLIDAYS_LIST: params.holidays,
+    TOTAL_COST: result.totalCost,
+    PURCHASE_PATH: result.purchasePath,
+    EXECUTION_TIME_SEC: result.executionTime || 0, // GASから受け取った計算時間を保存
+    PURCHASE_DAYS_COUNT: result.purchaseDaysCount || 0,
+    SIMULATION_CALLS: result.simulationCalls || 0,
+    MEMO_HITS: result.memoHits || 0
+  };
+
+  // --- 比較プランのコストを動的キーから特定して追加 ---
+  const costs = result.comparisonCosts || {};
+  newLogPayload.COST_ALL_TICKETS = costs['すべて切符で利用'] || 0;
+  // '〇ヶ月定期で更新' または 'ベースラインプラン' というキーを持つ値を探す
+  newLogPayload.COST_BASELINE = Object.values(costs).find((v, i) => Object.keys(costs)[i].includes('定期で更新') || Object.keys(costs)[i].includes('ベースライン')) || 0;
+  // '月初' で始まるキーを持つ値を探す
+  newLogPayload.COST_MONTHLY_ON_FIRST = Object.values(costs).find((v, i) => Object.keys(costs)[i].startsWith('月初')) || 0;
+  newLogPayload.CACHE_VERSION = params.cacheVersion; // パラメータからバージョンを取得
+
+  // insertの代わりにupsertを使用し、主キーが重複した場合はデータを更新する
+  const { error } = await supabase.from('CALCULATION_LOGS').upsert(newLogPayload);
+  if (error) {
+    console.error("Supabaseへのログ保存中にエラー:", error);
+  } else {
+    console.log("計算結果をSupabaseに保存しました。");
+  }
+}
+
+/**
+ * 計算結果ページに遷移する
+ * @param {object} response - 表示する結果データ
+ * @param {object} params - 計算時のパラメータ
+ */
+function redirectToResultPage(response, params) {
+  const resultString = encodeURIComponent(JSON.stringify(response));
+  let { calendarHolidays } = generateHolidayLists();
+  const calendarHolidaysForUrl = calendarHolidays.map(d => d.replace(/-/g, ''));
+  const paramsForUrl = {
+    ...params,
+    startDate: params.startDate.replace(/-/g, ''),
+    calendarHolidays: calendarHolidaysForUrl.join(',')
+  };
+  const paramsString = encodeURIComponent(JSON.stringify(paramsForUrl));
+  window.location.href = `result.html?result=${resultString}&params=${paramsString}`;
+}
+
+document.getElementById('calculateBtn').addEventListener('click', async () => {
+  const params = getParamsFromForm();
+  if (!params) return;
+
+  const calcButton = document.getElementById('calculateBtn');
+  calcButton.disabled = true;
+  calcButton.textContent = '計算中...';
+
+  // Google Analytics イベントトラッキング
+  if (typeof gtag === 'function') gtag('event', 'calculate_click');
+
+  // --- デバッグモードの判定 ---
+  const urlForDebug = new URLSearchParams(window.location.search);
+  const isDebugMode = urlForDebug.get('debug') === 'true';
+  if (isDebugMode) {
+    console.log("デバッグモード: キャッシュ検索をスキップします。");
+  }
+
+  const cachedResult = isDebugMode ? null : await findCacheInSupabase(params, supabase);
+
+  if (cachedResult) {
+    // --- 2a. キャッシュがあれば、それを使って結果ページへ ---
+    redirectToResultPage(cachedResult, params);
+  } else {
+    // --- 2b. キャッシュがなければ、GASに計算をリクエスト ---
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbzBFSnlmmHSIYVarB28iuylOidj88GstCitZVbWVK4WdIrAm0dsk59em-qDc5--_9fN/exec';
+    const queryString = Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&');
+    
+    // JSONPリクエスト
+    const script = document.createElement('script');
+    const callbackName = 'gasCallback_' + Date.now();
+    script.src = `${gasUrl}?callback=${callbackName}&${queryString}`;
+
+    window[callbackName] = async (response) => {
+      if (response && response.status === 'success' && response.result) {
+        // --- 3. GASの結果をSupabaseに保存し、結果ページへ ---
+        await saveLogToSupabase(params, response.result, supabase);
+        redirectToResultPage(response, params);
+      } else {
+        alert('エラーが発生しました: ' + (response.message || '不明なエラー'));
+        calcButton.disabled = false;
+        calcButton.textContent = '計算する';
+      }
+      // 後処理
+      document.body.removeChild(script);
+      delete window[callbackName];
+    };
+
+    script.onerror = () => {
+      alert('計算サーバーとの通信に失敗しました。');
+      calcButton.disabled = false;
+      calcButton.textContent = '計算する';
+      document.body.removeChild(script);
+      delete window[callbackName];
+    };
+
+    document.body.appendChild(script);
+  }
+});
+
+document.getElementById('includeOneMonthPass').addEventListener('change', (event) => {
+  const inputDiv = document.getElementById('oneMonthPassInput');
+  inputDiv.style.display = event.target.checked ? 'block' : 'none';
+});
+
+document.getElementById('includeThreeMonthPass').addEventListener('change', (event) => {
+  const inputDiv = document.getElementById('threeMonthPassInput');
+  inputDiv.style.display = event.target.checked ? 'block' : 'none';
+});
+
+document.getElementById('includeSixMonthPass').addEventListener('change', (event) => {
+  const inputDiv = document.getElementById('sixMonthPassInput');
+  inputDiv.style.display = event.target.checked ? 'block' : 'none';
+});
+
+// --- 休日設定のロジック ---
+/** 曜日ごとの設定カードを動的に生成 */
+function createDaySettingCards() {
+  const container = document.querySelector('.day-settings-list');
+  const days = [ {label: '月', value: 1}, {label: '火', value: 2}, {label: '水', value: 3}, {label: '木', value: 4}, {label: '金', value: 5}, {label: '土', value: 6}, {label: '日', value: 0} ];
+  const savedSettings = JSON.parse(localStorage.getItem('daySettings')) || { '0': 'holiday', '6': 'holiday' }; // デフォルトは土日休み
+
+  container.innerHTML = days.map(day => {
+    const setting = savedSettings[day.value] || 'work'; // デフォルトは勤務
+    return `
+      <div class="day-setting-row">
+        <div class="day-label">${day.label}曜</div>
+        <div>
+          <select data-day="${day.value}">
+            <option value="work" ${setting === 'work' ? 'selected' : ''}>勤務</option>
+            <option value="holiday" ${setting === 'holiday' ? 'selected' : ''}>毎週休み</option>
+            <option value="biweekly_odd" ${setting === 'biweekly_odd' ? 'selected' : ''}>隔週休み(奇数週)</option>
+            <option value="biweekly_even" ${setting === 'biweekly_even' ? 'selected' : ''}>隔週休み(偶数週)</option>
+          </select>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/** 曜日設定のプルダウンから値を取得 */
+function getDaySettings() {
+  const settings = {};
+  document.querySelectorAll('.day-settings-list select').forEach(select => {
+    settings[select.dataset.day] = select.value;
+  });
+  return settings;
+}
+
+/** カスタム休日/勤務日のタグを描画 */
+function renderCustomDateTags() {
+  const container = document.getElementById('custom-dates-tags');
+  // localStorageから読み込む際は、常にJSON.parseを使う
+  const customHolidays = new Set(JSON.parse(localStorage.getItem('customHolidays') || '[]'));
+  const customWorkdays = new Set(JSON.parse(localStorage.getItem('workingDays') || '[]'));
+  container.innerHTML = '';
+  
+  customHolidays.forEach(date => container.appendChild(createTag(date, 'holiday')));
+  customWorkdays.forEach(date => container.appendChild(createTag(date, 'workday')));
+}
+
+/** タグ要素を生成 */
+function createTag(date, type) {
+  const li = document.createElement('li');
+  li.className = 'holiday-tag';
+  li.textContent = `${date} (${type === 'holiday' ? '休日' : '勤務日'})`;
+  if (type === 'national-holiday') {
+    li.textContent = `${date} (祝日)`;
+    li.classList.add('is-national-holiday');
+  } else {
+    li.style.backgroundColor = type === 'holiday' ? '#fff5e6' : '#e6f9f0'; // カスタム休日: オレンジ, カスタム勤務日: 緑
+    li.style.borderColor = type === 'holiday' ? '#ffe8cc' : '#cce9d4';
+  }
+  li.style.border = '1px solid';
+
+  // カスタム休日/勤務日の場合にのみ削除ボタンを追加
+  if (type !== 'national-holiday') {
+    const removeBtn = document.createElement('button');
+    removeBtn.innerHTML = '&times;';
+    removeBtn.onclick = (e) => {
+      e.stopPropagation(); // 親要素へのイベント伝播を停止
+      const customHolidays = new Set(JSON.parse(localStorage.getItem('customHolidays') || '[]'));
+      const customWorkdays = new Set(JSON.parse(localStorage.getItem('workingDays') || '[]'));
+      if (type === 'holiday') {
+        customHolidays.delete(date);
+      } else { // 'workday'
+        customWorkdays.delete(date);
+      }
+      localStorage.setItem('customHolidays', JSON.stringify(Array.from(customHolidays)));
+      localStorage.setItem('workingDays', JSON.stringify(Array.from(customWorkdays)));
+      renderCustomDateTags();
+      drawSettingCalendar();
+    };
+    li.appendChild(removeBtn);
+  }
+  return li;
+}
+
+/**
+ * =================================================
+ * 設定用カレンダーのロジック
+ * =================================================
+ */
+
+/**
+ * 指定された日付に月数を加算する
+ * @param {Date} date - 元の日付
+ * @param {number} months - 加算する月数
+ * @returns {Date} 新しい日付
+ */
+function addMonths(date, months) {
+  const newDate = new Date(date);
+  newDate.setMonth(newDate.getMonth() + months);
+  return newDate;
+}
+
+/**
+ * 日付を加算・減算する
+ * @param {Date} date - 元の日付
+ * @param {number} days - 加算する日数（負数で減算）
+ * @returns {Date} 新しい日付
+ */
+const addDays = (date, days) => {
+  const newDate = new Date(date);
+  newDate.setDate(newDate.getDate() + days);
+  return newDate;
+};
+/**
+ * 日付を 'yyyy-MM-dd' 形式の文字列に変換 */
+const dateToKey = (d) => {
+    if (!d || !(d instanceof Date)) return null;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${da}`;
+};
+
+/**
+ * その月の第何週目かを取得する
+ * @param {Date} d - 日付オブジェクト
+ * @param {number} weekStartDay - 週の始まりの曜日 (0:日曜, 1:月曜)
+ * @returns {number} 週番号
+ */
+const getWeekNumber = (d, weekStartDay) => {
+    const date = d.getDate();
+    const day = d.getDay();
+    // 月の1日の曜日を考慮して週番号を計算
+    const firstDayOfMonth = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
+    return Math.ceil((date + (firstDayOfMonth - weekStartDay + 7) % 7) / 7);
+};
+
+/**
+ * 現在のフォーム設定に基づいて、特定の日付が休日かどうかを判定する
+ * @param {string} dateKey - 'yyyy-MM-dd'形式の日付文字列
+ * @param {Date} dateObj - 対応するDateオブジェクト
+ * @param {Object} daySettings - 曜日ごとの設定
+ * @param {Set<string>} nationalHolidays - 祝日のSet
+ * @param {Set<string>} customHolidays - カスタム休日のSet
+ * @param {Set<string>} customWorkdays - カスタム勤務日のSet
+ * @returns {boolean} 休日であればtrue
+*/
+function isHoliday(dateKey, dateObj, daySettings, customHolidays, customWorkdays, nationalHolidays) {
+    // dateObjが不正な場合にエラーで停止するのを防ぐ
+    if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return false;
+
+    // 1. カスタム設定を最優先する
+    if (customWorkdays.has(dateKey)) return false;
+    if (customHolidays.has(dateKey)) return true;
+
+    // 2. 祝日を判定する (holiday-jp-dayjsライブラリを使用)
+    if (nationalHolidays.has(dateKey)) return true; // nationalHolidaysはdrawSettingCalendarで生成される
+
+    // 3. 曜日ごとの設定を判定する
+    const dayOfWeek = dateObj.getDay();
+    const setting = daySettings[dayOfWeek];
+    if (setting === 'holiday') return true;
+    const weekNumber = getWeekNumber(dateObj, Number(document.querySelector('input[name="weekStart"]:checked').value));
+    if (setting === 'biweekly_odd' && weekNumber % 2 !== 0) return true;
+    if (setting === 'biweekly_even' && weekNumber % 2 === 0) return true;
+
+    return false; // 上記のいずれにも該当しない場合は勤務日
+}
+
+/** カレンダーの日付クリックを処理 */
+function handleCalendarClick(event) {
+    const cell = event.target.closest('.setting-calendar-cell');
+    const dateKey = cell.dataset.date;
+    if (!dateKey) return;
+
+    const dateObj = new Date(dateKey + 'T00:00:00'); // タイムゾーン問題を避けるためT00:00:00を付与
+    const daySettings = getDaySettings();
+    // localStorageから読み込む際は、常にJSON.parseを使う
+    const customHolidays = new Set(JSON.parse(localStorage.getItem('customHolidays') || '[]'));
+    const customWorkdays = new Set(JSON.parse(localStorage.getItem('workingDays') || '[]'));
+
+    // クリック時の状態遷移ロジック
+    if (customWorkdays.has(dateKey)) {
+        // 「カスタム勤務日」を解除 → 元の状態（isBaseHoliday）に戻る
+        customWorkdays.delete(dateKey);
+    } else if (customHolidays.has(dateKey)) {
+        // 「カスタム休日」を解除 → 元の状態（isBaseHoliday）に戻る
+        customHolidays.delete(dateKey);
+    } else {
+        // 曜日設定に基づく休日判定
+        const isNationalHoliday = document.getElementById('includeHolidays').checked && holiday_jp.isHoliday(dateObj);
+        const dayOfWeek = dateObj.getDay();
+        const setting = daySettings[dayOfWeek];
+        const weekNumber = getWeekNumber(dateObj, Number(document.querySelector('input[name="weekStart"]:checked').value));
+        const isBaseHoliday = (setting === 'holiday') || (setting === 'biweekly_odd' && weekNumber % 2 !== 0) || (setting === 'biweekly_even' && weekNumber % 2 === 0) || isNationalHoliday;
+        isBaseHoliday ? customWorkdays.add(dateKey) : customHolidays.add(dateKey);
+    }
+
+    // 変更をLocalStorageに保存
+    localStorage.setItem('customHolidays', JSON.stringify(Array.from(customHolidays)));
+    localStorage.setItem('workingDays', JSON.stringify(Array.from(customWorkdays)));
+
+    drawSettingCalendar(); // 状態が更新されたのでカレンダーを再描画
+}
+
+/** 設定用カレンダーを描画・更新する */
+function drawSettingCalendar() {
+    const calendarView = document.getElementById('settingCalendarView');
+    calendarView.innerHTML = ''; // コンテナをクリア
+
+    const startDateStr = document.getElementById('startDate').value;
+    const startDate = new Date(startDateStr);
+    // 開始日が不正な場合はここで処理を中断
+    if (!startDateStr || isNaN(startDate.getTime())) return;
+
+    const duration = Number(document.getElementById('duration').value) || 12;
+
+    // --- この関数内で使用する休日セットをすべて生成する ---
+    const daySettings = getDaySettings();
+    // localStorageから読み込む際は、常にJSON.parseを使う
+    const customHolidays = new Set(JSON.parse(localStorage.getItem('customHolidays') || '[]'));
+    const customWorkdays = new Set(JSON.parse(localStorage.getItem('workingDays') || '[]'));
+
+    const includeHolidays = document.getElementById('includeHolidays').checked;
+    const nationalHolidays = new Set();
+    if (includeHolidays && holiday_jp) {
+        // カレンダーに表示される期間全体の祝日を取得する
+        const simEndDateForHoliday = addDays(addMonths(startDate, duration), -1);
+        // 開始日: 表示する最初の月の1日
+        const calendarPeriodStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        // 終了日: 表示する最後の月の末日
+        const calendarPeriodEnd = new Date(simEndDateForHoliday.getFullYear(), 11, 31);
+        const holidays = holiday_jp.between(calendarPeriodStart, calendarPeriodEnd);
+
+        for (const holiday of holidays) {
+            nationalHolidays.add(dateToKey(holiday.date));
+        }
+    }
+
+    renderCustomDateTags(); // カスタム休日タグを再描画
+
+    const weekStartDay = Number(document.querySelector('input[name="weekStart"]:checked').value); // 0:日曜, 1:月曜
+    const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+    if (weekStartDay === 1) { weekDays.push(weekDays.shift()); }
+
+    // シミュレーション終了日を計算 (例: 9/12から12ヶ月 -> 翌年9/11)
+    const simEndDate = addDays(addMonths(startDate, duration), -1); 
+
+    // 描画対象の最初の月から最後の月までループ
+    for (let d = new Date(startDate.getFullYear(), startDate.getMonth(), 1); 
+         d <= simEndDate; 
+         d.setMonth(d.getMonth() + 1)) {
+        const year = d.getFullYear();
+        const month = d.getMonth();
+
+        const monthContainer = document.createElement('div');
+        monthContainer.className = 'setting-month-container';
+        monthContainer.innerHTML = `
+            <div style="font-size: 16px; font-weight: 600; text-align: center; margin-bottom: 8px; color: var(--primary-color);">${year}年 ${month + 1}月</div>
+            <div class="week-header">${weekDays.map(d => `<div>${d}</div>`).join('')}</div>
+            <div class="setting-calendar-grid"></div>
+        `;
+        const grid = monthContainer.querySelector('.setting-calendar-grid');
+
+        const firstDateOfMonth = new Date(year, month, 1);
+        const calendarStartDate = new Date(firstDateOfMonth);
+        calendarStartDate.setDate(calendarStartDate.getDate() - ((firstDateOfMonth.getDay() - weekStartDay + 7) % 7));
+
+        // 6週間(42日)で固定することで、月の表示が崩れるのを防ぐ
+        const totalDaysInGrid = 42;
+
+        for (let i = 0; i < totalDaysInGrid; i++) {
+            const currentDate = new Date(calendarStartDate);
+            currentDate.setDate(currentDate.getDate() + i);
+            const key = dateToKey(currentDate);
+
+            const cell = document.createElement('div');
+            cell.className = 'setting-calendar-cell';
+            cell.textContent = currentDate.getDate();
+            cell.dataset.date = key;
+
+            if (currentDate.getMonth() !== month) {
+                cell.classList.add('is-other-month');
+            } else {
+                // --- セルの状態に応じたクラス設定 ---
+                if (customHolidays.has(key)) cell.classList.add('is-custom-holiday');
+                else if (customWorkdays.has(key)) cell.classList.add('is-custom-workday');
+                else if (isHoliday(key, currentDate, daySettings, customHolidays, customWorkdays, nationalHolidays)) cell.classList.add('is-holiday');
+                cell.addEventListener('click', handleCalendarClick);
+            }
+            grid.appendChild(cell);
+        }
+        calendarView.appendChild(monthContainer);
+    }
+}
+
+/**
+ * ページ読み込み時にLocalStorageから設定を復元する
+ */
+function restoreFormState() {
+    // 金額入力欄
+    ['fare', 'monthlyPass', 'threeMonthPass', 'sixMonthPass'].forEach(id => {
+        const rawValue = localStorage.getItem(id);
+        if (rawValue) document.getElementById(id).value = rawValue;
+    });
+
+    // 日付と期間
+    const startDate = localStorage.getItem('startDate');
+    document.getElementById('startDate').value = startDate || dateToKey(new Date());
+    const duration = localStorage.getItem('durationInMonths');
+    if (duration) document.getElementById('duration').value = duration;
+
+    // 定期券チェックボックスと入力欄の表示/非表示
+    ['One', 'Three', 'Six'].forEach(period => {
+        const checkboxId = `include${period}MonthPass`;
+        const inputDivId = `${period.toLowerCase()}MonthPassInput`;
+        const isChecked = localStorage.getItem(checkboxId) === 'true';
+        const checkbox = document.getElementById(checkboxId);
+        // 1ヶ月定期はデフォルトでチェックONなので、保存された値がnullの場合も考慮
+        if (period === 'One') {
+            checkbox.checked = localStorage.getItem(checkboxId) !== 'false';
+        } else {
+            checkbox.checked = isChecked;
+        }
+        document.getElementById(inputDivId).style.display = checkbox.checked ? 'block' : 'none';
+    });
+
+    // 休日設定
+    const includeHolidays = localStorage.getItem('includeHolidays');
+    if (includeHolidays !== null) document.getElementById('includeHolidays').checked = (includeHolidays === 'true');
+
+    // 週の始まり
+    const savedWeekStart = localStorage.getItem('weekStartPreference');
+    if (savedWeekStart) {
+        const radio = document.querySelector(`input[name="weekStart"][value="${savedWeekStart}"]`);
+        if (radio) radio.checked = true;
+    }
+}
+
+// --- イベントリスナー ---
+
+/**
+ * アプリケーションの初期化処理
+ */
+function initializeApp() {
+    // --- アップグレード直後の期間更新処理 ---
+    if (localStorage.getItem('justUpgraded') === 'true') {
+        const plan = localStorage.getItem('licensePlan');
+        const newDefault = (plan === 'pro') ? '24' : '12'; // standard or pro
+        localStorage.setItem('durationInMonths', newDefault);
+        localStorage.removeItem('justUpgraded'); // フラグは一度使ったら削除
+    }
+
+    // この関数はグローバルスコープの initialLicensePlan を初期化する
+    initialLicensePlan = localStorage.getItem('licensePlan'); // 初期プランを記憶
+    // --- ライセンス状態の確認とUI反映 ---
+    const upgradeNotice = document.getElementById('upgrade-notice');
+    const upgradeLink = document.getElementById('open-pricing-from-notice');
+
+    // deviceIdがなければここで生成・保存する
+    if (!localStorage.getItem('deviceId')) { localStorage.setItem('deviceId', 'device_' + Date.now()); }
+
+    const licenseKey = localStorage.getItem('licenseKey');
+    const licensePlan = localStorage.getItem('licensePlan');
+    if (licenseKey && licensePlan) {
+        document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-user-check"></i>ライセンス情報';
+    }
+
+    createDaySettingCards(); // 曜日設定カードを生成
+    restoreFormState();      // LocalStorageから設定を復元
+
+    // 週の始まりラジオボタンにイベントリスナーを追加
+    document.querySelectorAll('input[name="weekStart"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            localStorage.setItem('weekStartPreference', e.target.value); // 共通キーで設定を保存
+            drawSettingCalendar(); // ラジオボタンが変更されたらカレンダーを再描画
+        });
+    });
+
+    // 期間選択のプルダウンを生成
+    const durationSelect = document.getElementById('duration');
+    durationSelect.innerHTML = ''; // 既存の選択肢をクリア
+
+    let maxDuration = 12;
+    let defaultDuration = '12';
+
+    if (!licensePlan) { // フリープラン
+      maxDuration = 3;
+      defaultDuration = '3';
+      if (upgradeNotice) upgradeNotice.style.display = 'block';
+    } else if (licensePlan === 'pro') { // プロプラン
+      maxDuration = 24;
+      defaultDuration = '24'; // プロプランのデフォルトを最大値である24ヶ月に設定
+      if (upgradeNotice) upgradeNotice.style.display = 'none';
+    } else { // スタンダードプランの場合も案内は非表示にする
+      if (upgradeNotice) upgradeNotice.style.display = 'none';
+    }
+    // スタンダードプランはデフォルトの maxDuration = 12 のまま
+
+    for (let i = 2; i <= maxDuration; i++) {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = i;
+      durationSelect.appendChild(option);
+    }
+
+    let savedDuration = localStorage.getItem('durationInMonths');
+
+    // --- プラン変更時の期間整合性ロジック ---
+    // 保存された期間が、現在のプランで選択可能な最大期間を超えている場合
+    // (例: プロ(24ヶ月)からスタンダード(12ヶ月)にダウングレードした場合など)
+    // は、現在のプランのデフォルト値にリセットする。
+    if (savedDuration && Number(savedDuration) > maxDuration) {
+        // 保存された値が現在のプランの上限を超えている場合は、デフォルト値にリセット
+        savedDuration = defaultDuration;
+    }
+    durationSelect.value = savedDuration || defaultDuration; // 保存された値がなければデフォルト値を使用
+
+    // 休日設定に関連するすべての入力要素にイベントリスナーを設定
+    const holidaySettingElements = [
+        ...document.querySelectorAll('.day-settings-list select'),
+        document.getElementById('includeHolidays'),
+        document.getElementById('startDate'),
+        document.getElementById('duration')
+    ];
+    holidaySettingElements.forEach(el => {
+        el.addEventListener('change', drawSettingCalendar);
+    });
+
+    if (upgradeLink) {
+        upgradeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.open_pricingModal) window.open_pricingModal();
+        });
+    }
+
+    // カレンダーを初期描画
+    if (document.getElementById('startDate').value) {
+        drawSettingCalendar();
+    }
+}
+
+/**
+ * =================================================
+ * 金額入力欄の入力制御
+ * =================================================
+ */
+const amountInputs = ['fare', 'monthlyPass', 'threeMonthPass', 'sixMonthPass', 'duration'];
+
+amountInputs.forEach(id => {
+  const input = document.getElementById(id);
+  if (!input) return;
+
+  const sanitizeInput = (e) => {
+    const inputElement = e.target;
+    if (e.isComposing || inputElement.readOnly) return;
+    const originalValue = inputElement.value;
+    let sanitizedValue = originalValue.replace(/[^0-9]/g, '');
+    if (sanitizedValue.length > 1 && sanitizedValue.startsWith('0')) {
+      sanitizedValue = sanitizedValue.substring(1);
+    }
+    const maxLength = 6;
+    sanitizedValue = sanitizedValue.slice(0, maxLength);
+    if (originalValue !== sanitizedValue) {
+      inputElement.value = sanitizedValue;
+    }
+  };
+
+  input.addEventListener('input', sanitizeInput);
+  input.addEventListener('compositionend', sanitizeInput);
+});
+
+/**
+ * =================================================
+ * ハンバーガーメニュー、モーダル、iframe通信の制御
+ * =================================================
+ */
+let initialLicensePlan = null; // ページ読み込み時のプランを記憶するグローバル変数
+
+function setupModal(modalId, openBtnId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  const openBtn = document.getElementById(openBtnId);
+  const closeBtn = modal.querySelector('.modal-close-btn');
+
+  const updateIframeSrc = () => {
+    if (modalId === 'licenseModal') {
+      const licenseKey = localStorage.getItem('licenseKey');
+      // iframeに渡す情報を追加
+      const licensePlan = localStorage.getItem('licensePlan');
+      const expiresAt = localStorage.getItem('licenseExpiresAt');
+      const deviceId = localStorage.getItem('deviceId');
+      const iframe = document.getElementById('licenseIframe');
+      iframe.src = `license.html?key=${encodeURIComponent(licenseKey || '')}&plan=${encodeURIComponent(licensePlan || '')}&deviceId=${encodeURIComponent(deviceId || '')}&expiresAt=${encodeURIComponent(expiresAt || '')}`;
+    } else if (modalId === 'pricingModal') {
+      const licensePlan = localStorage.getItem('licensePlan');
+      const iframe = document.getElementById('pricingIframe');
+      iframe.src = `pricing.html?plan=${encodeURIComponent(licensePlan || 'free')}`;
+    }
+  };
+
+  const openModal = (e) => {
+    if (e) e.preventDefault();
+    if (modalId === 'contactModal') {
+        // お問い合わせモーダルの場合、常にiframeを再生成してクリーンな状態にする
+        const modalBody = modal.querySelector('.modal-body');
+        modalBody.innerHTML = ''; // 古いiframeを削除
+        const newIframe = document.createElement('iframe');
+        newIframe.id = 'contactIframe';
+        newIframe.frameBorder = '0';
+        newIframe.marginHeight = '0';
+        newIframe.marginWidth = '0';
+        const deviceId = localStorage.getItem('deviceId') || 'N/A';
+        const formId = '1FAIpQLSdl1Tjp7hJAyCirrE_2LoL_4DWhMw2OyEHLEWBL-_WlC2rYbg'; // フォーム自体のID
+        const entryId = '1585594458'; // entry ID
+        newIframe.src = `https://docs.google.com/forms/d/e/${formId}/viewform?embedded=true&entry.${entryId}=${encodeURIComponent(deviceId)}`;
+        modalBody.appendChild(newIframe);
+    } else {
+        // 他モーダルはsrcを更新するだけ
+        updateIframeSrc();
+    }
+    modal.classList.add('is-visible');
+  };
+
+  // windowに関数を公開し、他のモーダルから開けるようにする
+  window[`open_${modalId}`] = () => {
+    // 他のモーダルが開いていれば閉じる
+    document.querySelectorAll('.modal-overlay.is-visible').forEach(m => m.classList.remove('is-visible'));
+    openModal();
+  };
+
+  const closeModal = () => {
+    const currentLicensePlan = localStorage.getItem('licensePlan');
+    modal.classList.remove('is-visible');
+
+    // お問い合わせモーダルを閉じた際にiframeを完全に削除し、beforeunload警告を抑制する
+    if (modalId === 'contactModal') {
+        const modalBody = modal.querySelector('.modal-body');
+        modalBody.innerHTML = '<iframe id="contactIframe" src="about:blank" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>';
+    }
+
+    if (modalId === 'licenseModal' && initialLicensePlan !== currentLicensePlan) {
+        location.reload();
+    }
+  };
+
+  if (openBtn) openBtn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('is-visible')) closeModal();
+  });
+}
+
+/**
+ * =================================================
+ * ページの初期化とイベントリスナーの登録
+ * =================================================
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. UIの初期化
+    initializeApp();
+
+    // 2. UIイベントリスナーの登録
+    document.querySelector('.menu-btn').addEventListener('click', function() {
+        this.classList.toggle('is-active');
+        document.querySelector('.nav-menu').classList.toggle('is-active');
+    });
+    setupModal('contactModal', 'openContactFooter'); // トリガーIDを変更
+    setupModal('licenseModal', 'openLicenseForm');
+    setupModal('pricingModal', 'openPricingModal');
+    setupModal('tokushohoModal', 'openTokushohoModal');
+
+    // 3. 認証状態の同期
+    await syncAuthState(supabase);
+});
+
+/**
+ * =================================================
+ * iframeからのメッセージ受信
+ * =================================================
+ */
+window.addEventListener('message', async (event) => {
+    // ここで送信元のオリジンをチェックすることも可能
+    // if (event.origin !== 'https://your-domain.com') return;
+
+    if (event.data && event.data.type === 'authSuccess') {
+        const oldPlan = localStorage.getItem('licensePlan');
+        const newPlan = event.data.plan;
+        // 認証成功のメッセージを受け取ったらライセンス情報を保存
+        localStorage.setItem('licenseKey', event.data.key);
+        localStorage.setItem('licensePlan', newPlan);
+        localStorage.setItem('licenseExpiresAt', event.data.expiresAt);
+        document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-user-check"></i>ライセンス情報';
+        if (oldPlan !== newPlan) {
+            // プランが変更された場合、アップグレード直後の期間更新のためにフラグを立てる
+            localStorage.setItem('justUpgraded', 'true');
+        }
+        // Google Analytics イベントトラッキング
+        if (typeof gtag === 'function') {
+            gtag('event', 'auth_success', { 'plan': newPlan });
+        }
+    }
+    if (event.data && event.data.type === 'authRevoke') {
+        // 認証解除のメッセージを受け取ったらライセンス情報を削除
+        localStorage.removeItem('licenseKey');
+        localStorage.removeItem('licensePlan');
+        localStorage.removeItem('licenseExpiresAt');
+        document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-key"></i>ライセンス認証';
+    }
+    // [修正] if/else if の連鎖を解消し、各メッセージを独立して判定する
+    if (event.data === 'openPricingModalFromLicense') {
+        if (window.open_pricingModal) window.open_pricingModal();
+    }
+    if (event.data && event.data.type === 'resize') {
+        // iframeから高さ情報を受け取って調整
+        if (event.data.source === 'license') {
+            const licenseIframe = document.getElementById('licenseIframe');
+            if (licenseIframe) licenseIframe.style.height = event.data.height + 'px';
+        } else if (event.data.source === 'pricing') {
+            const pricingIframe = document.getElementById('pricingIframe');
+            if (pricingIframe) pricingIframe.style.height = event.data.height + 'px';
+        } else if (event.data.source === 'tokushoho') {
+            const tokushohoIframe = document.getElementById('tokushohoIframe');
+            if (tokushohoIframe) tokushohoIframe.style.height = event.data.height + 'px';
+        }
+    }
+    if (event.data && event.data.type === 'setDeviceId') {
+        // license.htmlから新しいdeviceIdの保存要求
+        // 設計意図: deviceIdは親ウィンドウ(index.html)のlocalStorageで一元管理する
+        localStorage.setItem('deviceId', event.data.deviceId);
+    }
+    if (event.data && event.data.type === 'startPayment') {
+        // Google Analytics イベントトラッキング
+        if (typeof gtag === 'function') {
+            gtag('event', 'start_payment', { 'plan': event.data.plan });
+        }
+    }
+    if (event.data && event.data.type === 'openContactModal') {
+        // tokushoho.htmlからお問い合わせモーダルを開く要求
+        if (window.open_contactModal) window.open_contactModal();
+    }
+    if (event.data && event.data.type === 'invokeFunction') {
+        // iframe (license.html) からのEdge Function実行リクエストを処理
+        const { functionName, body } = event.data;
+        if (!functionName || !body) return;
+
+        try {
+            const { data: response, error } = await supabase.functions.invoke(functionName, { body });
+            if (error) throw error;
+
+            // 実行結果をiframeに返す
+            const sourceIframe = document.getElementById('licenseIframe').contentWindow;
+            if (sourceIframe) {
+                sourceIframe.postMessage({ type: 'functionResponse', functionName, response }, '*');
+            }
+        } catch (e) {
+            console.error(`${functionName} の呼び出しに失敗しました:`, e);
+            // エラーが発生した場合も、その旨をiframeに通知する
+            const sourceIframe = document.getElementById('licenseIframe').contentWindow;
+            if (sourceIframe) {
+                sourceIframe.postMessage({ type: 'functionResponse', functionName, response: { status: 'error', message: e.message } }, '*');
+            }
+        }
+    }
+});
+
+</script>
+</body>
+</html>

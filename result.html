@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex">
+<!-- OGP -->
+<meta property="og:title" content="計算結果 - TeKeep! | あなたの交通費、最適化します">
+<meta property="og:description" content="TeKeep!は、通勤・通学費を節約するための無料シミュレーター。あなたの休日設定に合わせて、最も安くなる購入プランを簡単に見つけられます。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tekeep.github.io">
+<meta property="og:image" content="https://tekeep.github.io/images/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+
+<title>計算結果 - TeKeep! (テイキープ)</title>
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+:root {
+  --primary-color: #00c4cc; /* SmartHRを参考に、明るいティール系に */
+  --primary-hover-color: #00a9b0;
+  --accent-color: #f97316; /* バーの色と合わせたオレンジに */
+  --background-color: #f8f9fa;
+  --text-color: #0f3854;
+  --light-gray: #e9ecef;
+  --border-color: #ced4da;
+}
+
+/* --- モーダルウィンドウ --- */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000;
+  opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+}
+.modal-overlay.is-visible { opacity: 1; visibility: visible; }
+.modal-content {
+  background-color: white; border-radius: 12px;
+  width: 90%; max-width: 800px; height: 80%; overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  display: flex; flex-direction: column;
+  transform: scale(0.9); transition: transform 0.3s;
+}
+.modal-overlay.is-visible .modal-content { transform: scale(1); }
+.modal-header { padding: 12px 20px; border-bottom: 1px solid var(--light-gray); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h4 { margin: 0; font-size: 16px; }
+.modal-close-btn { font-size: 24px; color: #888; cursor: pointer; background: none; border: none; }
+.modal-body { flex-grow: 1; padding: 0; overflow: hidden; }
+.modal-body iframe { width: 100%; height: 100%; border: 0; }
+
+/* --- フッター --- */
+footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color); font-size: 13px; }
+footer a { color: #6c757d; text-decoration: none; margin: 0 10px; }
+footer a:hover { text-decoration: underline; }
+
+.modal-header h4 { margin: 0; font-size: 16px; }
+.modal-close-btn { font-size: 24px; color: #888; cursor: pointer; background: none; border: none; }
+.modal-body { flex-grow: 1; padding: 0; overflow: hidden; }
+.modal-body iframe { width: 100%; height: 100%; border: 0; }
+
+/* --- ここまで --- */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; max-width: 980px; margin: 20px auto 0; background: var(--background-color); color: var(--text-color); padding: 0 15px 80px;
+}
+.button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: white !important; /* aタグのデフォルト色を上書き */
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; max-width: 980px; margin: 20px auto 0; background: var(--background-color); color: var(--text-color); padding: 0 15px 80px; } /* 下部の余白をpadding-bottomで確保 */
+h2 { margin-bottom: 8px; font-size: 2.25rem; font-weight: 700; color: var(--primary-color); text-align: center; }
+label { font-size: 13px; margin-bottom: 8px; display: inline-block; font-weight: 600; color: var(--primary-color); background-color: rgba(0, 196, 204, 0.1); padding: 4px 10px; border-radius: 9999px; }
+button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transition:0.2s; }
+#recalculateBtn { padding: 12px 0; font-size: 16px; width: 100%; display: block; border-radius: 8px; }
+#recalculateBtn { background: var(--primary-color); color: white; box-shadow: 0 4px 12px rgba(0, 196, 204, 0.3); transform: translateY(0); }
+#recalculateBtn:hover { background: var(--primary-hover-color); box-shadow: 0 2px 8px rgba(0, 196, 204, 0.4); transform: translateY(-1px); }
+#bottomBtn { position:fixed; bottom:10px; left: 0; right: 0; z-index: 10; }
+.card { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 20px; }
+
+/* --- カレンダー関連のスタイルを再設計 --- */
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.calendar-cell {
+  background-color: #fff; border: 1px solid #eee; border-radius: 4px; padding: 4px;
+  aspect-ratio: 1 / 1; /* セルを正方形に保つ */
+  font-size: 12px; text-align: center; position: relative;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+}
+
+.cell-header { padding-top: 2px; }
+.cell-body { flex-grow: 1; width: 100%; display: flex; align-items: center; justify-content: center; }
+.calendar-cell .date-num { font-weight: 500; font-size: 12px; }
+
+/* --- バー表示を専用要素で再実装 --- */
+.pass-bar {
+  visibility: hidden; /* 普段は非表示(displayの代わりにvisibilityを使う) */
+  height: 18px;
+  width: 100%;
+  background-color: var(--accent-color);
+  /* テキスト用のスタイルを追加 */
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pass-bar.is-visible {
+  visibility: visible; /* このクラスが付いたら表示する */
+}
+.pass-bar.start { border-top-left-radius: 9px; border-bottom-left-radius: 9px; }
+.pass-bar.end { border-top-right-radius: 9px; border-bottom-right-radius: 9px; }
+
+.calendar-cell.is-holiday { background-color: #fff0f0; }
+.ticket-text {
+  color: var(--accent-color);
+  font-weight: bold;
+  font-size: 13px;
+}
+.calendar-cell.is-other-month { background-color: var(--background-color); color: #ccc; }
+.legend { margin: 12px 0 8px; font-size: 13px; color: #555; display: flex; flex-wrap: wrap; gap: 14px; }
+.chip { display:inline-block; width:16px; height:14px; vertical-align:middle; margin-right:4px; border:1px solid #888; border-radius:2px; box-sizing: border-box; }
+.chip.pass { background: #fff9f2; border-color: #fed7aa; }
+.chip.holiday { background: #fff0f0; border-color: #fecaca; }
+.chip.purchase { background: var(--accent-color); border-color: var(--accent-color); }
+.row-head { display:flex; gap:6px; align-items:center; justify-content:space-between; }
+.legend-bar { display: inline-block; width: 16px; height: 14px; vertical-align: middle; margin-right: 4px; background-color: var(--accent-color); border-radius: 2px; }
+.row-head h4 { margin: 0; display: flex; align-items: center; gap: 8px; } /* 見出しのデフォルトマージンをリセット */
+.accordion-header { margin-top:20px; padding:10px; background:var(--primary-color); color:#fff; border-radius:8px; cursor:pointer; font-weight:600; }
+.accordion-content { display:none; margin-top:10px; }
+#resultContainer { display:flex; flex-direction: column; gap:16px; }
+#purchaseListContainer { flex: 1; }
+#chartContainer { flex: 1; }
+.week-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+.week-header div { padding: 4px 0; background: var(--primary-color); color: white; border-radius: 4px; font-size: 12px; }
+.month-container { flex: 1 1 300px; min-width: 280px; }
+.chart-legend { font-size: 12px; color: #666; margin-top: 10px; padding: 10px; background: var(--light-gray); border-radius: 8px; }
+.chart-legend ul { margin: 5px 0 0 20px; padding: 0; }
+.chart-legend li { margin-bottom: 4px; }
+.chart-legend strong { color: #333; }
+#purchaseList {
+  margin: 12px 0 0; /* 見出しとのマージンを調整 */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  padding-left: 0; /* flexにしたので左のパディングは不要 */
+}
+.logo-img { max-width: 180px; height: auto; margin-bottom: 8px; }
+.result-header {
+  display: flex; /* アイコンとテキストを横並びにする */
+  align-items: center; /* 上下中央揃え */
+/* --- ここまで --- */
+  justify-content: center; /* 左右中央揃え */
+  font-size: 1.5rem;
+  color: var(--text-color);
+  font-weight: 700;
+  margin: 16px 0; /* 上下の余白 */
+  position: relative; /* 疑似要素の基準点 */
+}
+.savings-card { text-align: center; padding: 20px; background-color: rgba(0, 196, 204, 0.1); border: 2px solid var(--primary-color); display: flex; flex-direction: column; }
+.savings-card .label { font-size: 1rem; color: var(--text-color); margin-bottom: 4px; font-weight: 500; margin-top: 12px; }
+.savings-card .amount { font-size: 2.5rem; font-weight: 700; color: var(--accent-color); line-height: 1.2; margin-top: 0; }
+.savings-card .amount span { font-size: 1rem; font-weight: normal; color: var(--text-color); margin-left: 4px; }
+.savings-card .emphasis { color: var(--accent-color); font-weight: 700; }
+#purchaseList li.calendar-link-item {
+  list-style-type: none; background-color: var(--light-gray); padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid #dee2e6;
+  cursor: pointer;
+  text-align: center; /* テキストを水平中央揃えにする */
+  transition: background-color 0.2s, transform 0.1s;
+}
+#purchaseList li.calendar-link-item:hover { background-color: #e2e6ea; transform: translateY(-1px); }
+#calendarPagingControls {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+#calendarPagingControls.is-visible { opacity: 1; visibility: visible; pointer-events: auto; }
+.plan-promo-box {
+  display: none; /* JSで表示を制御 */
+  gap: 12px;
+  background-color: #fff9f2; /* accent-colorの薄い色 */
+  border: 1px solid #fed7aa;
+  border-left: 5px solid var(--accent-color);
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.plan-promo-box a {
+  font-weight: 600;
+  text-decoration: underline;
+  color: var(--primary-color);
+}
+</style>
+</head>
+<body>
+<div class="hamburger-menu">
+  <div class="menu-btn">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav class="nav-menu">
+  <ul>
+    <!-- <li><a href="#" id="openContactForm" style="border-bottom: none;"><i class="fa-solid fa-fw fa-envelope"></i>お問い合わせ</a></li> -->
+  </ul>
+</nav>
+
+<header style="text-align: center; margin-bottom: 30px;">
+  <a href="index.html" style="text-decoration: none; display: inline-block;">
+    <img src="images/logo.png" alt="TeKeep! ロゴ" class="logo-img" style="display: block; margin: 0 auto 24px;">
+  </a>
+  <div style="border-top: 1px solid var(--border-color); margin-bottom: 16px;"></div>
+  <h2 class="result-header" style="gap: 8px;"><i class="fa-solid fa-calculator" style="color: var(--primary-color); font-size: 24px; position: relative; top: -1px;"></i>シミュレーション結果</h2>
+  <div style="border-top: 1px solid var(--border-color);"></div>
+</header>
+
+<!-- パラメータがない場合のエラー表示 -->
+<div id="errorScreen" style="display: none; text-align: center; padding: 40px 20px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+  <h2 style="font-size: 1.8rem; margin-top: 0;"><i class="fa-solid fa-circle-exclamation" style="color: var(--accent-color); margin-bottom: 12px;"></i><br>計算結果がありません</h2>
+  <p style="font-size: 16px; line-height: 1.7; margin-top: 16px; color: var(--text-color);">
+    このURLには計算結果の情報が含まれていません。<br>
+    お手数ですが、トップページから再度計算を実行してください。
+  </p>
+  <a href="index.html" class="button" style="margin-top: 24px; display: inline-block; min-width: 200px;">トップページに戻る</a>
+</div>
+
+<!-- お問い合わせモーダル -->
+<div id="contactModal" class="modal-overlay">
+  <div class="modal-content" style="height: 90%;">
+    <div class="modal-header">
+      <h4>お問い合わせフォーム</h4>
+      <button class="modal-close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <iframe id="contactIframe" src="" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
+    </div>
+  </div>
+</div>
+
+<!-- 特定商取引法に基づく表記モーダル -->
+<div id="tokushohoModal" class="modal-overlay">
+  <div class="modal-content" style="height: 90%; max-width: 700px;">
+    <div class="modal-header">
+      <h4>特定商取引法に基づく表記</h4>
+      <button class="modal-close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <iframe id="tokushohoIframe" src="tokushoho.html" style="width: 100%; height: 100%; border: 0;"></iframe>
+    </div>
+  </div>
+</div>
+
+<div id="resultScreen">
+  <div class="card savings-card">
+    <div class="row-head"><h4 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-coins" style="color: var(--primary-color); font-size: 20px;"></i>節約額</h4></div>
+    <div style="display: flex; flex-direction: column; flex-grow: 1; justify-content: center;">
+      <div id="savingsLabel" class="label" style="margin-top: 4px; margin-bottom: 0;">1ヶ月定期で更新プランと比べて...</div>
+      <div id="savingsAmount" class="amount">0<span>円</span></div>
+      <div class="label" style="margin-top: 0; margin-bottom: auto;"><span class="emphasis">おトク</span>になります！</div>
+    </div>
+  </div>
+
+  <div id="plan-promo" class="plan-promo-box">
+    <!-- JSで内容を動的に設定 -->
+  </div>
+
+  <div id="purchaseListContainer" class="card">
+    <div class="row-head"><h4 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-list-check" style="color: var(--primary-color); font-size: 20px;"></i>最適な購入プラン</h4></div>
+    <ul id="purchaseList" style="margin-top: 14px;"></ul>
+    <p id="calendar-link-description" style="font-size: 13px; color: #495057; margin-top: 12px; margin-bottom: 0px;; padding: 8px; background-color: #f8f9fa; border-radius: 6px; text-align: center; display: none;">
+      <i class="fa-solid fa-arrow-pointer" style="margin-right: 4px;"></i>上記の日付をクリックすると、Googleカレンダーに登録できます。
+    </p>
+  </div>
+
+  <div id="chartContainer" class="card">
+    <div class="row-head" style="margin-top: 0;">
+      <h4><i class="fa-solid fa-chart-column" style="color: var(--primary-color); font-size: 20px;"></i>コスト比較</h4>
+    </div>
+    <div style="height: 200px; position: relative; margin-top: 8px;">
+      <canvas id="savingsChart"></canvas>
+    </div>
+    <div class="chart-legend" style="margin-top: 10px;">
+      <strong>各プランの説明</strong>
+      <ul>
+        <li><strong>最適プラン:</strong> このアプリが計算した最も安くなる購入パターンです。</li>
+        <li id="baselinePlanDescription"></li>
+        <li id="monthlyOnFirstDescription" style="display: none;"><strong>月初1ヶ月定期:</strong> 毎月1日に1ヶ月定期を買い続けた場合のコストです。（初月が月中の場合は切符で計算）</li>
+        <li><strong>すべて切符で利用:</strong> 定期を一切買わずに、出勤日をすべて切符で過ごした場合のコストです。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ▼▼▼ 広告表示エリア ▼▼▼ -->
+  <div id="ad-container-result" style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; margin-top: 24px; margin-bottom: 24px; text-align: center;">
+    <!-- ここにAmazonアソシエイトなどの広告タグを挿入 -->
+  </div>
+  <!-- ▲▲▲ 広告表示エリア ▲▲▲ -->
+
+  <div class="card">
+    <div class="row-head">
+      <h4><i class="fa-solid fa-calendar-days" style="color: var(--primary-color); font-size: 20px;"></i>利用プランカレンダー</h4>
+      <button id="toggleCalendarBtn" style="padding: 6px 12px; font-size: 14px; background-color: var(--light-gray); color: var(--text-color);">表示する</button>
+    </div>
+    <div class="accordion-content" id="calendarContainer" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+      <div id="calendarControls" style="margin-top: 12px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+          <div>
+            <label style="background: none; color: #495057; padding: 0; font-weight: 500; display: inline; margin-right: 6px;">週の始まり:</label>
+            <input type="radio" name="weekStartResult" value="0" id="weekStartSun" style="width: auto; margin-right: 4px; position: relative; top: 1px;" checked><label for="weekStartSun" style="background: none; color: #495057; padding: 0; font-weight: normal; display: inline; margin-right: 6px;">日曜</label>
+            <input type="radio" name="weekStartResult" value="1" id="weekStartMon" style="width: auto; margin-right: 4px; position: relative; top: 1px;"><label for="weekStartMon" style="background: none; color: #495057; padding: 0; font-weight: normal; display: inline;">月曜</label>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+            <button id="toggleCalendarViewBtn" style="padding: 4px 8px;">全期間表示</button>
+          </div>
+        </div>
+        <div class="legend" style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div style="flex-grow: 1; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+             <div style="display: flex; align-items: center; gap: 4px;"><i class="legend-bar"></i> : 定期期間</div>
+             <div style="display: flex; align-items: center; gap: 4px;"><i class="chip holiday"></i> : 休日</div>
+             <div style="display: flex; align-items: center; gap: 4px; font-size: 13px;"><strong style="color: var(--accent-color); font-weight: bold;">切符</strong> : 利用日</div>
+          </div>
+          <div id="calendarPagingControls">
+             <button id="prevMonthBtn" style="padding: 4px 8px;">＜ 前月</button>
+             <button id="nextMonthBtn" style="padding: 4px 8px;">次月 ＞</button>
+          </div>
+        </div>
+      </div>
+      <div id="calendarView" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;"></div>
+    </div>
+  </div>
+  <div id="bottomBtn">
+    <button id="recalculateBtn" onclick="window.location.href='index.html'" style="display: block; max-width: 980px; margin: 0 auto; width: calc(100% - 30px);">再計算する</button>
+  </div>
+</div>
+
+<footer style="display: none;" id="resultFooter">
+  <a href="#" id="openContactFooter">お問い合わせ</a>
+  <a href="#" id="openTokushohoModal">特定商取引法に基づく表記</a>
+  <span>&copy; 2025 TeKeep!</span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- グラフ上にデータラベルを表示するためのChart.jsプラグイン -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+function atMidnight(d){ const nd=new Date(d.getFullYear(),d.getMonth(),d.getDate()); nd.setHours(0,0,0,0); return nd; }
+let myChart = null; // Chart.jsのインスタンスを保持するグローバル変数
+let currentResultData = null; // GASからの結果を保持するグローバル変数
+let currentParams = null; // 計算時のパラメータを保持するグローバル変数
+let initialLicensePlan = null; // 初期プランを記憶
+let calendarDisplayMode = 'all'; // 'single' or 'all'
+let currentDisplayMonthIndex = 0; // 表示中の月のインデックス
+let holidaysForThisRun = new Set(); // この実行で使われる休日セット
+
+function dateToKey(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}`; }
+function addDays(d,n){ const nd=new Date(d); nd.setDate(nd.getDate()+n); return atMidnight(nd); }
+function addMonths(date, months) {
+    const d = new Date(date);
+    d.setMonth(d.getMonth() + months);
+    // 月末日の考慮: 2/28に1ヶ月足して3/28になるべきだが、JSは3/31の1ヶ月後を5/1としてしまうことがあるため調整
+    if (d.getDate() !== date.getDate()) {
+        d.setDate(0); // 前の月の最終日を設定
+    }
+    return d;
+}
+function formatMD(d){ return `${d.getMonth()+1}/${d.getDate()}`; }
+
+function renderResult(response, params){
+  // 結果とパラメータをグローバル変数に保存
+  currentResultData = response;
+  currentParams = params;
+  calendarDisplayMode = 'all'; // 初期表示は全期間
+  currentDisplayMonthIndex = 0; // 休日セットの生成は不要
+
+  // 購入一覧表示
+  const purchasePath = response.result.purchasePath;
+  const purchaseDatesStr = purchasePath.match(/\d{4}-\d{2}-\d{2}/g) || [];
+  const purchaseDays = purchaseDatesStr.map(d => atMidnight(new Date(d)));
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  let listHTML="";
+  purchaseDays.forEach(d => {
+    const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} (${weekDays[d.getDay()]})`;
+    // li要素自体をクリック可能にし、data属性とクラスを付与する
+    listHTML += `<li data-date="${dateToKey(d)}" class="calendar-link-item">${dateStr}</li>`;
+  });
+  document.getElementById("purchaseList").innerHTML=listHTML;
+
+  // グラフ描画
+  drawChart();
+
+  // 各購入日へのクリックイベントリスナーを設定
+  setupCalendarLinks();
+
+  // カレンダー描画 (アコーディオンが開かれるときに遅延実行される)
+  // toggleAccordion(); // 初期表示で開きたい場合はコメントを外す
+}
+
+function drawChart() {
+  // 棒グラフ計算
+  const comparisonCosts = currentResultData.result.comparisonCosts || {};
+
+  // --- ベースラインプランのラベルを決定するロジック ---
+  let baselineLabel = Object.keys(comparisonCosts).find(key => key.includes('定期で更新')); // 1. 新規計算時の動的ラベルを探す
+
+  if (!baselineLabel && comparisonCosts['ベースラインプラン'] !== undefined && currentParams) {
+    // 2. 1で見つからず、キャッシュ利用時（'ベースラインプラン'キーが存在）の場合
+    // currentParams を元に、ユーザーが選択した最長の定期券種別からラベルを再生成
+    if (currentParams.sixMonthPass > 0) baselineLabel = '6ヶ月定期で更新';
+    else if (currentParams.threeMonthPass > 0) baselineLabel = '3ヶ月定期で更新';
+    else if (currentParams.monthlyPass > 0) baselineLabel = '1ヶ月定期で更新';
+  }
+  
+  // 3. 最終的なフォールバック
+  if (!baselineLabel) {
+      baselineLabel = 'ベースラインプラン';
+  }
+  
+  // comparisonCostsオブジェクトのキーを動的に書き換える
+  if (baselineLabel !== 'ベースラインプラン' && comparisonCosts['ベースラインプラン'] !== undefined) {
+      comparisonCosts[baselineLabel] = comparisonCosts['ベースラインプラン'];
+      delete comparisonCosts['ベースラインプラン'];
+  }
+  const baselineCostValue = comparisonCosts[baselineLabel];
+
+  const costs = [
+    { label: '最適プラン', cost: currentResultData.result.totalCost, color: getComputedStyle(document.documentElement).getPropertyValue('--primary-color') },
+  ];
+  // キャッシュから来たデータ('月初購入プラン')と、新規計算のデータ('月初〇ヶ月定期')の両方に対応
+  const shortestPassOnFirstLabel = Object.keys(comparisonCosts).find(key => key.startsWith('月初')) || '月初購入プラン';
+  const shortestPassOnFirstCost = comparisonCosts[shortestPassOnFirstLabel];
+
+  // 比較プランが存在する場合のみcosts配列に追加
+  if (comparisonCosts['すべて切符で利用']) costs.push({ label: 'すべて切符で利用', cost: comparisonCosts['すべて切符で利用'], color: '#ccc' });
+  if (shortestPassOnFirstCost) costs.push({ label: shortestPassOnFirstLabel, cost: shortestPassOnFirstCost, color: '#aaa' });
+  if (baselineCostValue) costs.push({ label: baselineLabel, cost: baselineCostValue, color: '#888' });
+
+  // 金額の降順でソート
+  costs.sort((a, b) => b.cost - a.cost);
+
+  // 凡例のテキストを動的に更新
+  document.getElementById('baselinePlanDescription').innerHTML = `<strong>${baselineLabel}:</strong> あなたが選択した最も期間の長い定期券を、期間が切れるたびに買い続けた場合のコストです。`;
+  // 月初購入プランが存在する場合のみ、凡例の説明を表示
+  const monthlyOnFirstDesc = document.getElementById('monthlyOnFirstDescription');
+  if (shortestPassOnFirstLabel) {
+    monthlyOnFirstDesc.innerHTML = `<strong>${shortestPassOnFirstLabel}:</strong> 毎月1日に、あなたが選択した最短期間の定期を買い続けた場合のコストです。`;
+    monthlyOnFirstDesc.style.display = 'list-item';
+  } else {
+    monthlyOnFirstDesc.style.display = 'none';
+  }
+
+  const baselineCost = costs.find(c => c.label === baselineLabel)?.cost || 0;
+  const optimalCost = costs.find(c => c.label === '最適プラン')?.cost || 0;
+  const savings = baselineCost > 0 ? Math.round(baselineCost - optimalCost) : 0;
+
+  // 節約額のラベルも動的に更新
+  document.getElementById('savingsLabel').textContent = `${baselineLabel}の金額と比べて...`;
+  document.getElementById('savingsAmount').innerHTML = `${savings.toLocaleString()}<span>円</span>`;
+
+  // --- フリープランユーザー向けのプロモーション表示 ---
+  const promoBox = document.getElementById('plan-promo');
+  // [修正] localStorageではなく、計算実行時のパラメータからプラン情報を取得
+  if (!currentParams.licensePlan && promoBox) {
+    promoBox.style.display = 'block';
+    promoBox.innerHTML = `
+      今回の節約額は <strong>${savings.toLocaleString()}円</strong> でした！<br>
+      <a href="#" id="promo-link">スタンダードプラン (480円/年, 税込)</a> にアップグレードすると、シミュレーション期間が<strong>最大12ヶ月</strong>に延長されます。より長期のシミュレーションで、さらなる節約を目指しませんか？
+    `;
+    document.getElementById('promo-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.open_pricingModal) window.open_pricingModal();
+    });
+  }
+  
+  const ctx=document.getElementById('savingsChart').getContext('2d');
+  // 既存のチャートがあれば破棄する
+  if (myChart) {
+    myChart.destroy();
+  }
+
+  Chart.register(ChartDataLabels); // データラベルプラグインを登録
+  myChart = new Chart(ctx,{
+    type: 'bar',
+    data:{
+      labels: costs.map(c => c.label),
+      datasets:[{
+        label: '金額(円)',
+        data: costs.map(c => c.cost),
+        backgroundColor: costs.map(c => c.color),
+        barPercentage: 0.6, // バーの太さをカテゴリ幅の60%に設定
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      indexAxis: 'y',
+      plugins:{
+        datalabels: {
+          anchor: 'end', // ラベルをバーの終端（右側）にアンカー
+          align: 'start', // ラベルをアンカーポイントの左側に配置
+          offset: 4, // バーの内側に4pxオフセット
+          clamp: true, // ラベルがグラフ領域からはみ出る場合に、自動的に隠す
+          color: 'white', // ラベルの文字色を白に変更
+          font: {
+            weight: 'bold',
+            size: 13,
+          },
+          formatter: (value) => value.toLocaleString() + '円' // 表示形式をカンマ区切り＋円にする
+        },
+        legend: { display: false }, // 凡例を非表示にする
+        tooltip: { callbacks: { label: (context) => `${context.label}: ${context.raw.toLocaleString()}円` } } 
+      },
+      scales:{ 
+        x: { 
+          beginAtZero:true,
+          title: { 
+            display: true, 
+            text: '金額 (円)',
+          }
+        },
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+/**
+ * =================================================
+ * カレンダー描画用の休日判定ロジック
+ * =================================================
+ */
+
+/**
+ * その月の第何週目かを取得する
+ * @param {Date} d - 日付オブジェクト
+ * @param {number} weekStartDay - 週の始まりの曜日 (0:日曜, 1:月曜)
+ * @returns {number} 週番号
+ */
+const getWeekNumber = (d, weekStartDay) => {
+    const date = d.getDate();
+    const day = d.getDay();
+    const firstDayOfMonth = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
+    return Math.ceil((date + (firstDayOfMonth - weekStartDay + 7) % 7) / 7);
+};
+
+/**
+ * index.htmlでの設定に基づいて、特定の日付が休日かどうかを判定する
+ * @param {string} dateKey - 'yyyy-MM-dd'形式の日付文字列
+ * @param {Date} dateObj - 対応するDateオブジェクト
+ * @param {Object} params - index.htmlから渡されたパラメータオブジェクト
+ * @returns {boolean} 休日であればtrue
+*/
+function isHolidayBasedOnParams(dateKey, dateObj, params) {
+    if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return false;
+
+    // URLパラメータから渡された表示用の休日リストを使用
+    const calendarHolidaysYmdStr = params.calendarHolidays || '';
+    const holidaysSet = new Set();
+    calendarHolidaysYmdStr.split(',').forEach(h => {
+      if (h.length === 8) {
+        // yyyymmdd形式をyyyy-mm-dd形式に復元
+        holidaysSet.add(`${h.substring(0, 4)}-${h.substring(4, 6)}-${h.substring(6, 8)}`);
+      }
+    });
+
+    return holidaysSet.has(dateKey);
+}
+
+function drawCalendar() {
+  if (!currentResultData || !currentParams) return;
+
+  const today = atMidnight(new Date(currentParams.startDate));
+  const calendarView = document.getElementById('calendarView');
+  calendarView.innerHTML = '';
+
+  if (calendarDisplayMode === 'single') {
+    document.getElementById('calendarPagingControls').classList.add('is-visible');
+  } else {
+    document.getElementById('calendarPagingControls').classList.remove('is-visible');
+  }
+  document.getElementById('toggleCalendarViewBtn').textContent = calendarDisplayMode === 'single' ? '全期間表示' : '単月表示';
+
+  // --- 描画に必要なデータを準備 ---
+  const purchasePath = currentResultData.result.purchasePath;
+  const periods = [];
+  const purchaseDayKeys = new Set();
+  const purchasePathRegex = /(\d{4}-\d{2}-\d{2})\s*\((\d+)ヶ月\)/g;
+  let match;
+  while ((match = purchasePathRegex.exec(purchasePath)) !== null) {
+    const startDate = atMidnight(new Date(match[1]));
+    const months = parseInt(match[2], 10);
+    const endDate = addDays(addMonths(startDate, months), -1);
+    periods.push({ start: startDate, end: endDate });
+    purchaseDayKeys.add(dateToKey(startDate));
+  }
+
+  // --- 描画対象の月を決定 ---
+  const startMonthIndex = calendarDisplayMode === 'single' ? currentDisplayMonthIndex : 0;
+  const endMonthIndex = calendarDisplayMode === 'single' ? currentDisplayMonthIndex : currentParams.durationInMonths - 1;
+
+  // --- 週の始まり設定 ---
+  const weekStartDay = Number(document.querySelector('input[name="weekStartResult"]:checked').value); // 0:日曜, 1:月曜
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  if (weekStartDay === 1) { weekDays.push(weekDays.shift()); }
+
+  // --- 月ごとにカレンダーを生成 ---
+  // シミュレーション終了日を計算
+  const simEndDate = addDays(addMonths(today, currentParams.durationInMonths), -1);
+
+  // 描画対象の最初の月から最後の月までループ
+  for (let d = new Date(today.getFullYear(), today.getMonth(), 1); d <= simEndDate; d.setMonth(d.getMonth() + 1)) {
+    // 単月表示モードのフィルタリング
+    if (calendarDisplayMode === 'single' && (d.getFullYear() !== addMonths(today, currentDisplayMonthIndex).getFullYear() || d.getMonth() !== addMonths(today, currentDisplayMonthIndex).getMonth())) {
+      continue;
+    }
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    
+    const monthContainer = document.createElement('div');
+    monthContainer.className = 'month-container';
+    monthContainer.innerHTML = `
+      <div style="font-size: 16px; font-weight: 600; text-align: center; margin-bottom: 8px; color: var(--primary-color);">${year}年 ${month + 1}月</div>
+      <div class="week-header">${weekDays.map(w => `<div>${w}</div>`).join('')}</div>
+      <div class="calendar-grid"></div>
+    `;
+    const grid = monthContainer.querySelector('.calendar-grid');
+
+    // 月の最初と最後の日を取得
+    const firstDateOfMonth = new Date(year, month, 1);
+    const lastDateOfMonth = new Date(year, month + 1, 0);
+    
+    // カレンダーの開始日を計算（月の1日が始まる前の日曜日または月曜日）
+    const calendarStartDate = addDays(firstDateOfMonth, -((firstDateOfMonth.getDay() - weekStartDay + 7) % 7));
+
+    // 6週間分のセルを生成
+    for (let i = 0; i < 42; i++) {
+      const currentDate = addDays(calendarStartDate, i);
+      const cell = document.createElement('div');
+      cell.className = 'calendar-cell';
+      cell.innerHTML = `
+        <div class="cell-header"><span class="date-num">${currentDate.getDate()}</span></div>
+        <div class="cell-body"><div class="pass-bar"></div></div>
+      `;
+
+      // --- セルの状態に応じてクラスを付与 ---
+      if (currentDate.getMonth() !== month) {
+        cell.classList.add('is-other-month');
+      }
+
+      const key = dateToKey(currentDate);
+      const isHoliday = isHolidayBasedOnParams(key, currentDate, currentParams);
+      if (isHoliday) {
+        cell.classList.add('is-holiday');
+      }
+
+      if (currentDate.getMonth() === month) {
+        let isTicketDay = true;
+        for (const { start, end } of periods) {
+          if (currentDate >= start && currentDate <= end) {
+            isTicketDay = false; // 定期期間なので切符は不要
+            const bar = cell.querySelector('.pass-bar');
+            bar.classList.add('is-visible');
+            if (dateToKey(currentDate) === dateToKey(start)) {
+              bar.classList.add('start');
+              bar.textContent = '定期';
+            }
+            if (dateToKey(currentDate) === dateToKey(end)) bar.classList.add('end');
+            break;
+          }
+        }
+
+        // 定期期間外の出勤日を切符の日とする
+        // シミュレーション開始日より前の出勤日は切符表示の対象外
+        const termEndDate = addDays(addMonths(today, currentParams.durationInMonths), -1);
+        if (isTicketDay && !isHoliday && currentDate >= today && currentDate <= termEndDate) {
+          cell.querySelector('.cell-body').innerHTML = '<span class="ticket-text">切符</span>';
+        }
+      }
+      grid.appendChild(cell);
+    }
+    calendarView.appendChild(monthContainer);
+  }
+}
+
+function toggleAccordion(){
+  const content = document.getElementById("calendarContainer");
+  const isOpening = content.style.display !== "block";
+  content.style.display = isOpening ? "block" : "none";
+
+  // ボタンのテキストを切り替え
+  const button = document.getElementById("toggleCalendarBtn");
+  button.textContent = isOpening ? "閉じる" : "表示する";
+
+  // アコーディオンを開くときだけ、描画タイミングを少し遅らせてチラつきを防ぐ
+  if (isOpening) {
+    setTimeout(drawCalendar, 10); // 描画タイミングを少し遅らせる
+  }
+}
+
+function toggleCalendarView() {
+  calendarDisplayMode = (calendarDisplayMode === 'single') ? 'all' : 'single';
+  // ボタンのテキストを切り替え
+  document.getElementById('toggleCalendarViewBtn').textContent = calendarDisplayMode === 'single' ? '全期間表示' : '単月表示';
+  // ページングコントロールの表示を切り替え
+  if (calendarDisplayMode === 'single') {
+    document.getElementById('calendarPagingControls').classList.add('is-visible');
+  } else {
+    document.getElementById('calendarPagingControls').classList.remove('is-visible');
+  }
+  drawCalendar();
+}
+
+/**
+ * 各購入日のリンクに、Googleカレンダー登録用のクリックイベントを設定する
+ */
+function setupCalendarLinks() {
+  const links = document.querySelectorAll('.calendar-link-item');
+  const description = document.getElementById('calendar-link-description');
+
+  if (links.length === 0) {
+    if (description) description.style.display = 'none';
+    return;
+  }
+
+  if (description) description.style.display = 'block';
+
+  links.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault(); // aタグのデフォルトの画面遷移を無効化
+      const dateKey = e.target.dataset.date;
+      if (!dateKey) return;
+
+      // Google Analytics イベントトラッキング
+      if (typeof gtag === 'function') gtag('event', 'click_calendar_link');
+
+      const date = new Date(dateKey + 'T00:00:00'); // タイムゾーン問題を避ける
+
+      // 終日イベントとして登録するため、日付をYYYYMMDD形式にフォーマット
+      const startDateFmt = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const endDateFmt = `${nextDay.getFullYear()}${String(nextDay.getMonth() + 1).padStart(2, '0')}${String(nextDay.getDate()).padStart(2, '0')}`;
+      const eventTitle = encodeURIComponent('【TeKeep!】定期券の購入日');
+      const eventDetails = encodeURIComponent('TeKeep!で計算された定期券の購入予定日です。');
+      const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${startDateFmt}/${endDateFmt}&details=${eventDetails}&sf=true&output=xml`;
+
+      window.open(calendarUrl, '_blank');
+    });
+  });
+}
+
+
+// --- イベントリスナー ---
+
+// ページ読み込み完了時にLocalStorageから結果を読み込んで描画
+document.addEventListener('DOMContentLoaded', () => {
+  // URLのクエリパラメータからデータを取得
+  const urlParams = new URLSearchParams(window.location.search);
+  const resultString = urlParams.get('result');
+  const paramsString = urlParams.get('params');
+
+  let resultData = null;
+  let paramsData = {}; // 初期値を空のオブジェクトに
+
+  if (resultString && paramsString) {
+    resultData = JSON.parse(decodeURIComponent(resultString));
+    paramsData = JSON.parse(decodeURIComponent(paramsString));
+
+    // URLから受け取ったyyyymmdd形式のstartDateをyyyy-mm-dd形式に復元
+    if (paramsData.startDate && paramsData.startDate.length === 8) {
+      const s = paramsData.startDate;
+      paramsData.startDate = `${s.substring(0, 4)}-${s.substring(4, 6)}-${s.substring(6, 8)}`;
+    }
+
+    // --- パラメータが存在する場合のみ、結果表示処理を実行 ---
+    renderResult(resultData, paramsData);
+    document.getElementById('resultScreen').style.display = 'block';
+    document.getElementById('resultFooter').style.display = 'block';
+  } else {
+    // --- パラメータがない場合は、エラー画面を表示 ---
+    document.getElementById('resultScreen').style.display = 'none';
+    document.getElementById('errorScreen').style.display = 'block';
+  }
+
+  // 週の始まり設定の読み込み
+  const savedWeekStart = localStorage.getItem('weekStartPreference');
+  if (savedWeekStart) {
+    const radio = document.querySelector(`input[name="weekStartResult"][value="${savedWeekStart}"]`);
+    if (radio) {
+      radio.checked = true;
+    }
+  }
+
+  // --- イベントリスナーの登録 ---
+  document.getElementById('toggleCalendarBtn').addEventListener('click', toggleAccordion);
+  document.getElementById('toggleCalendarViewBtn').addEventListener('click', toggleCalendarView);
+
+  document.getElementById('prevMonthBtn').addEventListener('click', () => {
+    if (currentDisplayMonthIndex > 0) {
+      currentDisplayMonthIndex--;
+      drawCalendar();
+    }
+  });
+  document.getElementById('nextMonthBtn').addEventListener('click', () => {
+    // 期間の最終月を超えないように制限
+    const simEndDate = addDays(addMonths(new Date(currentParams.startDate), currentParams.durationInMonths), -1);
+    const nextMonthDate = addMonths(new Date(currentParams.startDate), currentDisplayMonthIndex + 1);
+    // 次の月がシミュレーション終了日を超えていないかチェック
+    if (nextMonthDate.getFullYear() < simEndDate.getFullYear() || 
+        (nextMonthDate.getFullYear() === simEndDate.getFullYear() && nextMonthDate.getMonth() <= simEndDate.getMonth())) {
+      currentDisplayMonthIndex++;
+      drawCalendar();
+    }
+  });
+});
+
+// 週の始まりラジオボタンにイベントリスナーを追加
+document.querySelectorAll('input[name="weekStartResult"]').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    localStorage.setItem('weekStartPreference', e.target.value); // 共通キーで設定を保存
+    drawCalendar(); // ラジオボタンが変更されたらカレンダーを再描画
+  });
+});
+
+function setupModal(modalId, openBtnId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  const openBtn = document.getElementById(openBtnId);
+  const closeBtn = modal.querySelector('.modal-close-btn');
+
+  // iframeのsrcを最新の状態で更新する関数
+  window[`open_${modalId}`] = () => {
+    // 他のモーダルが開いていれば閉じる
+    document.querySelectorAll('.modal-overlay.is-visible').forEach(m => m.classList.remove('is-visible'));
+    openModal();
+  };
+
+  const updateIframeSrc = () => {
+    if (modalId === 'licenseModal') {
+      const licenseKey = localStorage.getItem('licenseKey');
+      const licensePlan = currentParams.licensePlan; // [修正]
+      const deviceId = localStorage.getItem('userId');
+      const iframe = document.getElementById('licenseIframe');
+      iframe.src = `license.html?key=${encodeURIComponent(licenseKey || '')}&plan=${encodeURIComponent(licensePlan || '')}&deviceId=${encodeURIComponent(deviceId || '')}`;
+    } else if (modalId === 'pricingModal') {
+      const licensePlan = localStorage.getItem('licensePlan');
+      const iframe = document.getElementById('pricingIframe');
+      iframe.src = `pricing.html?plan=${encodeURIComponent(licensePlan || 'free')}`;
+    }
+  };
+
+  const openModal = (e) => {
+    if (e) e.preventDefault();
+    if (modalId === 'contactModal') {
+        // お問い合わせモーダルの場合、常にiframeを再生成してクリーンな状態にする
+        const modalBody = modal.querySelector('.modal-body');
+        modalBody.innerHTML = ''; // 古いiframeを削除
+        const newIframe = document.createElement('iframe');
+        newIframe.id = 'contactIframe';
+        newIframe.frameBorder = '0';
+        newIframe.marginHeight = '0';
+        newIframe.marginWidth = '0';
+        const deviceId = currentParams.deviceId || 'N/A'; // 修正: パラメータからdeviceIdを取得
+        const formId = '1FAIpQLSdl1Tjp7hJAyCirrE_2LoL_4DWhMw2OyEHLEWBL-_WlC2rYbg'; // フォーム自体のID
+        const entryId = '1585594458'; // entry ID
+        newIframe.src = `https://docs.google.com/forms/d/e/${formId}/viewform?embedded=true&entry.${entryId}=${encodeURIComponent(deviceId)}`;
+        modalBody.appendChild(newIframe);
+    } else {
+        updateIframeSrc();
+    }
+    modal.classList.add('is-visible');
+  };
+
+  const closeModal = () => {
+    const currentLicensePlan = localStorage.getItem('licensePlan');
+    modal.classList.remove('is-visible');
+
+    // お問い合わせモーダルを閉じた際にiframeを完全に削除し、beforeunload警告を抑制する
+    if (modalId === 'contactModal') {
+        const modalBody = modal.querySelector('.modal-body');
+        modalBody.innerHTML = '<iframe id="contactIframe" src="about:blank" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>';
+    }
+  };
+
+  if (openBtn) openBtn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Escapeキーでモーダルを閉じる
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('is-visible')) {
+      closeModal();
+    }
+  });
+}
+
+// 各モーダルをセットアップ
+setupModal('contactModal', 'openContactFooter'); // トリガーIDを変更
+
+setupModal('tokushohoModal', 'openTokushohoModal');
+
+// iframeからのメッセージを受信してモーダルを制御
+window.addEventListener('message', (event) => {
+    // ここで送信元のオリジンをチェックすることも可能
+    // if (event.origin !== 'https://your-domain.com') return;
+    if (event.data && event.data.type === 'openContactModal') {
+        // tokushoho.htmlからお問い合わせモーダルを開く要求
+        if (window.open_contactModal) window.open_contactModal();
+    }
+});
+</script>
+</body>
+
+</html>

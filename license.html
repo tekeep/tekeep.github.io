@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>ライセンス認証</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+:root {
+    --primary-color: #00c4cc;
+    --text-color: #0f3854;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: white;
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+}
+input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    font-size: 16px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+}
+button {
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+}
+button:disabled {
+    background-color: #adb5bd;
+    cursor: not-allowed;
+}
+p {
+    margin: 0;
+}
+a {
+    color: var(--primary-color);
+}
+.message-area {
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    display: none;
+}
+.message-area.success {
+    background-color: #e6f9f0;
+    border: 1px solid #cce9d4;
+    color: #155724;
+}
+.message-area.error {
+    background-color: #fff0f0;
+    border: 1px solid #fecaca;
+    color: #721c24;
+}
+#device-management {
+    display: none;
+}
+.device-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+}
+.device-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+.device-item .device-id {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.device-item .current-device-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-left: 8px;
+}
+.device-item button {
+    width: auto;
+    padding: 4px 10px;
+    font-size: 12px;
+    background-color: #dc3545;
+}
+</style>
+</head>
+<body>
+
+<div id="message-area" class="message-area"></div>
+
+<div id="auth-form">
+    <p style="font-size: 14px; color: #495057; margin-top: 0; margin-bottom: 16px;">ライセンスキーをお持ちの場合は、以下に入力して認証してください。</p>
+    <input type="text" id="licenseKeyInput" placeholder="ライセンスキーを入力">
+    <p style="font-size: 12px; color: #6c757d; margin-top: 4px; margin-bottom: 8px;">このデバイスを識別するための名前を入力してください。</p>
+    <input type="text" id="deviceNameInput" placeholder="例: 自宅のPC, 通勤用のスマホ">
+    <button id="submitLicenseKey">認証する</button>
+    <p style="font-size: 12px; color: #6c757d; text-align: center; margin-top: 16px;">
+        ライセンスをお持ちでない方は<a href="#" id="openPricingLink">こちら</a>
+    </p>
+    <p id="backToAuthInfoContainer" style="font-size: 12px; color: #6c757d; text-align: center; margin-top: 8px; display: none;">
+        <a href="#" id="backToAuthInfoLink">認証情報に戻る</a>
+    </p>
+</div>
+
+<!-- 認証済みの場合の表示 -->
+<div id="auth-info" style="display: none;">
+    <p style="font-size: 14px; color: #495057; margin-top: 0; margin-bottom: 8px;">現在、以下のプランで認証済みです。</p>
+    <div style="background: var(--primary-color); color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 16px;">
+        <strong id="current-plan" style="font-size: 18px;">スタンダードプラン</strong>
+    </div>
+    <div style="font-size: 14px; color: #495057; margin-bottom: 16px;">
+        <span style="font-weight: 600;">ライセンスキー:</span>
+        <strong id="current-license-key" style="font-family: monospace; letter-spacing: 1px;"></strong>
+    </div>
+    <div style="font-size: 14px; color: #495057; margin-bottom: 16px;">
+        <span style="font-weight: 600;">有効期限:</span>
+        <strong id="current-expires-at"></strong>
+    </div>
+    <p style="font-size: 12px; color: #6c757d; margin-bottom: 8px;">このブラウザでの認証を解除する場合は、以下のボタンを押してください。</p>
+    <button id="revokeLicenseBtn" style="background-color: #6c757d;">認証を解除する</button>
+    <p style="font-size: 12px; color: #6c757d; text-align: center; margin-top: 16px;">
+        <a href="#" id="showUpgradeFormLink">プランのアップグレード・変更はこちら</a>
+    </p>
+</div>
+
+<div id="device-management">
+    <p id="device-limit-message-1" style="font-size: 14px; color: #495057; margin-top: 0;">登録されているデバイスが上限に達しています。</p>
+    <p id="device-limit-message-2" style="font-size: 14px; color: #495057; margin-top: 4px; margin-bottom: 16px;">このデバイスを登録するには、以下のリストから不要なデバイスを解除してください。</p>
+    <ul id="device-list" class="device-list"></ul>
+    <button id="backToAuthFormBtn">認証画面に戻る</button>
+</div>
+
+<script>
+const authForm = document.getElementById('auth-form');
+const authInfoUI = document.getElementById('auth-info');
+const deviceManagementUI = document.getElementById('device-management');
+const messageArea = document.getElementById('message-area');
+const authFormDescription = authForm.querySelector('p');
+const backToAuthInfoContainer = document.getElementById('backToAuthInfoContainer');
+const licenseKeyInput = document.getElementById('licenseKeyInput');
+const submitBtn = document.getElementById('submitLicenseKey');
+const deviceList = document.getElementById('device-list');
+let currentLicenseKey = '';
+const APP_NAME = "TeKeep!"; // このアプリケーションの名前を定義
+
+/**
+ * ================= UI制御 =================
+ */
+function showMessage(text, type) {
+    messageArea.textContent = text;
+    messageArea.className = `message-area ${type}`;
+    messageArea.style.display = 'block';
+}
+
+function showDeviceManagementUI(devices) {
+    authForm.style.display = 'none';
+    authInfoUI.style.display = 'none';
+    deviceManagementUI.style.display = 'block';
+    deviceList.innerHTML = '';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentDeviceId = urlParams.get('deviceId');
+
+    devices.forEach(device => {
+        const li = document.createElement('li');
+        li.className = 'device-item';
+        const isCurrent = device.id === currentDeviceId;
+        li.innerHTML = `
+            <span class="device-id"><i class="fa-solid fa-desktop" style="margin-right: 8px;"></i>${device.name} ${isCurrent ? '<span class="current-device-label">(このデバイス)</span>' : ''}</span>
+            <button class="remove-device-btn" data-device-id="${device.id}">解除</button>
+        `;
+        deviceList.appendChild(li);
+    });
+    sendHeight();
+}
+
+function showAuthForm() {
+    deviceManagementUI.style.display = 'none';
+    authInfoUI.style.display = 'none';
+    authForm.style.display = 'block';
+    messageArea.style.display = 'none';
+    authFormDescription.textContent = 'ライセンスキーをお持ちの場合は、以下に入力して認証してください。';
+    backToAuthInfoContainer.style.display = 'none';
+    // デバイス名入力欄は、過去の認証情報がない場合にのみクリアする
+    sendHeight();
+}
+
+/**
+ * ライセンスキーを伏せ字にする
+ * @param {string} key - ライセンスキー
+ * @returns {string} 伏せ字化されたライセンスキー
+ */
+function maskLicenseKey(key) {
+    if (!key) return 'N/A';
+    const parts = key.split('-');
+    if (parts.length > 1) { // ハイフン区切りの場合 (例: ABCD-EFGH-IJKL-MNOP)
+        // 先頭と末尾のブロックを表示し、中間を伏せ字にする
+        return parts.map((part, index) => {
+            if (index === 0 || index === parts.length - 1) {
+                return part;
+            }
+            return '*'.repeat(part.length);
+        }).join('-');
+    } else { // ハイフンがない場合
+        return key.length > 8 ? key.slice(0, 4) + '*'.repeat(key.length - 8) + key.slice(-4) : key;
+    }
+}
+
+/**
+ * ================= イベントリスナー =================
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const licenseKey = urlParams.get('key');
+    const licensePlan = urlParams.get('plan');
+    const expiresAt = urlParams.get('expiresAt');
+
+    if (licenseKey && licensePlan && licenseKey !== 'null' && licensePlan !== 'null') {
+        // 認証済みの場合のUIを表示
+        authForm.style.display = 'none';
+        authInfoUI.style.display = 'block';
+        document.getElementById('current-plan').textContent = `${licensePlan.charAt(0).toUpperCase() + licensePlan.slice(1)} プラン`;
+        document.getElementById('current-license-key').textContent = maskLicenseKey(licenseKey);
+        document.getElementById('current-expires-at').textContent = formatExpiresAt(expiresAt);
+    } else {
+        // 未認証の場合のUIを表示
+        showAuthForm();
+    }
+    sendHeight();
+});
+
+/**
+ * 有効期限の日付文字列をフォーマットする
+ * @param {string} expiresAtStr - ISO 8601形式の日付文字列
+ * @returns {string} フォーマットされた日付文字列
+ */
+function formatExpiresAt(expiresAtStr) {
+    if (!expiresAtStr || expiresAtStr === 'null') return 'N/A';
+    try {
+        const d = new Date(expiresAtStr);
+        // ユーザーの期待に合わせて、表示上は「最終日の23時59分」まで有効であるように見せる
+        const displayDate = new Date(d.getTime() - 1); // 1ミリ秒引くことで、日付が変わる直前の時刻にする
+        const year = displayDate.getFullYear();
+        const month = displayDate.getMonth() + 1;
+        const date = displayDate.getDate();
+        return `${year}年${month}月${date}日 23:59 まで`;
+    } catch (e) { return '日付形式エラー'; }
+}
+
+document.getElementById('openPricingLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.parent.postMessage('openPricingModalFromLicense', '*');
+});
+
+document.getElementById('showUpgradeFormLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    authInfoUI.style.display = 'none';
+    authForm.style.display = 'block';
+    authFormDescription.textContent = '新しいライセンスキーを入力してプランをアップグレードしてください。';
+    backToAuthInfoContainer.style.display = 'block';
+    messageArea.style.display = 'none';
+    sendHeight();
+});
+
+document.getElementById('backToAuthInfoLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    authForm.style.display = 'none';
+    authInfoUI.style.display = 'block';
+    messageArea.style.display = 'none';
+    sendHeight();
+});
+
+submitBtn.addEventListener('click', async () => {
+    const key = licenseKeyInput.value.trim();
+    if (!key) { showMessage('ライセンスキーを入力してください。', 'error'); return; }
+
+    const deviceName = document.getElementById('deviceNameInput').value.trim();
+    if (!deviceName) {
+        showMessage('デバイス名を入力してください。', 'error');
+        return;
+    }
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 認証中...';
+    messageArea.style.display = 'none';
+
+    try {
+        let deviceId = new URLSearchParams(window.location.search).get('deviceId') || localStorage.getItem('deviceId');
+        if (!deviceId) {
+            deviceId = 'device_' + Date.now();
+            window.parent.postMessage({ type: 'setDeviceId', deviceId: deviceId }, '*');
+        }
+        const currentPlan = new URLSearchParams(window.location.search).get('plan') || 'free';
+ 
+        // 親ウィンドウにEdge Functionの実行を依頼
+        window.parent.postMessage({
+            type: 'invokeFunction',
+            functionName: 'authenticate-license',
+            body: { appName: APP_NAME, licenseKey: key, deviceId: deviceId, deviceName: deviceName, currentPlan: currentPlan }
+        }, '*');
+
+        // 親ウィンドウからの結果を待つ
+        const response = await new Promise(resolve => {
+            const listener = (event) => {
+                if (event.data && event.data.type === 'functionResponse' && event.data.functionName === 'authenticate-license') {
+                    window.removeEventListener('message', listener);
+                    resolve(event.data.response);
+                }
+            };
+            window.addEventListener('message', listener);
+        });
+
+        // Edge Functionが正常にエラーを返した場合
+        if (response.status === 'success') {
+            window.parent.postMessage({ type: 'authSuccess', key: response.key, plan: response.plan, expiresAt: response.expiresAt }, '*');
+            currentLicenseKey = response.key; // 認証成功時に最新のキーを内部変数に保持
+            // UIを認証済み画面に切り替え、成功メッセージを表示
+            authForm.style.display = 'none';
+            authInfoUI.style.display = 'block';
+            document.getElementById('current-plan').textContent = `${response.plan.charAt(0).toUpperCase() + response.plan.slice(1)} プラン`;
+            document.getElementById('current-license-key').textContent = maskLicenseKey(response.key);
+            document.getElementById('current-expires-at').textContent = formatExpiresAt(response.expiresAt);
+            showMessage('ライセンス認証に成功しました。', 'success');
+            sendHeight(); // 高さを再計算
+        } else if (response.status === 'device_limit_exceeded') {
+            currentLicenseKey = key;
+            showMessage(response.message, 'error');
+            showDeviceManagementUI(response.devices);
+        } else {
+            // 'error' ステータスやその他の予期せぬステータス
+            showMessage(response.message || '認証に失敗しました。', 'error');
+        }
+    } catch (error) {
+        console.error('認証処理中にエラーが発生しました:', error);
+        showMessage('サーバーとの通信に失敗しました。時間をおいて再度お試しください。', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '認証する';
+        sendHeight();
+    }
+});
+
+deviceList.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('remove-device-btn')) {
+        const btn = e.target;
+        const deviceIdToRemove = btn.dataset.deviceId;
+        const key = currentLicenseKey;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        try {
+            // 親ウィンドウにEdge Functionの実行を依頼
+            window.parent.postMessage({
+                type: 'invokeFunction',
+                functionName: 'remove-device',
+                body: { appName: APP_NAME, licenseKey: key, deviceIdToRemove: deviceIdToRemove }
+            }, '*');
+
+            // 親ウィンドウからの結果を待つ
+            const response = await new Promise(resolve => {
+                const listener = (event) => {
+                    if (event.data && event.data.type === 'functionResponse' && event.data.functionName === 'remove-device') {
+                        window.removeEventListener('message', listener);
+                        resolve(event.data.response);
+                    }
+                };
+                window.addEventListener('message', listener);
+            });
+            if (response.status === 'success') {
+                // メッセージを更新して、ユーザーに次のアクションを促す
+                document.getElementById('device-limit-message-1').textContent = 'デバイスを解除しました。';
+                document.getElementById('device-limit-message-2').textContent = '「認証画面に戻る」ボタンを押して、再度このデバイスの登録をお試しください。';
+                const itemToRemove = btn.closest('.device-item');
+                if (itemToRemove) itemToRemove.remove();
+                showMessage(response.message, 'success');
+            } else {
+                showMessage(response.message || 'デバイスの解除に失敗しました。', 'error');
+            }
+        } catch (error) {
+            console.error('デバイス解除処理中にエラーが発生しました:', error);
+            showMessage('サーバーとの通信に失敗しました。時間をおいて再度お試しください。', 'error');
+        } finally {
+            // 成功・失敗に関わらず、ボタンの状態を元に戻す
+            btn.disabled = false;
+            btn.innerHTML = '解除';
+        }
+    }
+});
+
+document.getElementById('revokeLicenseBtn').addEventListener('click', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    // 認証直後の解除に対応するため、まず内部変数の最新キーを使い、なければURLパラメータを参照する
+    const key = currentLicenseKey || urlParams.get('key');
+    const deviceIdToRemove = urlParams.get('deviceId');
+    if (!key || !deviceIdToRemove) return;
+
+    const btn = document.getElementById('revokeLicenseBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 解除中...';
+
+    try {
+        // 親ウィンドウにEdge Functionの実行を依頼
+        window.parent.postMessage({
+            type: 'invokeFunction',
+            functionName: 'remove-device',
+            body: { appName: APP_NAME, licenseKey: key, deviceIdToRemove: deviceIdToRemove }
+        }, '*');
+
+        // 親ウィンドウからの結果を待つ
+        const response = await new Promise(resolve => {
+            const listener = (event) => {
+                if (event.data && event.data.type === 'functionResponse' && event.data.functionName === 'remove-device') {
+                    window.removeEventListener('message', listener);
+                    resolve(event.data.response);
+                }
+            };
+            window.addEventListener('message', listener);
+        });
+        if (response.status === 'success') {
+            // 親ウィンドウに認証解除を通知
+            window.parent.postMessage({ type: 'authRevoke', message: response.message }, '*');
+            // UIを未認証フォームに切り替え、成功メッセージを表示
+            showAuthForm();
+            showMessage('ライセンスの認証を解除しました。', 'success');
+        } else {
+            showMessage(response.message || '解除に失敗しました。', 'error');
+        }
+    } catch (error) {
+        showMessage('サーバーとの通信に失敗しました。', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '認証を解除する';
+        sendHeight();
+    }
+});
+
+document.getElementById('backToAuthFormBtn').addEventListener('click', showAuthForm);
+
+// 親ウィンドウに高さを送信
+function sendHeight() {
+    // requestAnimationFrameを使用して、ブラウザの描画更新後に高さを取得する
+    requestAnimationFrame(() => {
+        const height = document.body.scrollHeight;
+        window.parent.postMessage({ type: 'resize', height, source: 'license' }, '*');
+    });
+}
+
+// ページ読み込み時、ウィンドウリサイズ時に高さを送信
+window.addEventListener('load', sendHeight);
+window.addEventListener('resize', sendHeight);
+
+const observer = new MutationObserver(sendHeight);
+observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+
+</script>
+
+</body>
+</html>
