@@ -5,16 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
 <title>ライセンス認証</title>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-XXXXXXXXXX');
-</script>
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
 :root {
@@ -108,7 +98,63 @@ a {
     width: auto;
     padding: 4px 10px;
     font-size: 12px;
-    background-color: #dc3545;
+    background-color: #f97316;
+}
+/* デバイスリスト内のボタンの幅を自動調整し、レイアウト崩れを防ぐ */
+.device-item .save-device-name-btn,
+.device-item .edit-device-btn {
+    width: 80px;
+    padding: 8px 0; /* 上下のpaddingを調整して高さを入力欄と合わせる */
+    line-height: 1.5; /* テキストボックスと行の高さを合わせる */
+    font-size: 14px;
+    white-space: nowrap; /* ボタン内のテキストが改行されるのを防ぐ */
+    flex-shrink: 0; /* flexコンテナ内でボタンが縮むのを防ぐ */
+}
+.device-item button:hover {
+    opacity: 0.85;
+}
+.device-item .edit-device-btn {
+    background-color: #f97316;
+}
+.device-item .edit-device-btn:hover {
+    background-color: #f97316; /* ホバー時も色を維持し、opacityで変化させる */
+}
+.copy-key-btn {
+    width: auto !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+    background-color: #6c757d !important;
+    margin-top: 8px; /* 上マージンを追加 */
+}
+.copy-key-btn:hover {
+    background-color: #5a6268 !important;
+}
+.copy-key-btn .fa-solid {
+    margin-right: 4px;
+}
+/* デバイス名編集UI */
+.device-name-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.device-name-text {
+    padding: 9px 0; /* 編集時のテキストボックスと高さを合わせる */
+    font-size: 14px;
+}
+.device-name-edit-form {
+    display: none; /* 初期状態では非表示 */
+    flex-grow: 1;
+    align-items: center; /* フォーム内の要素を垂直中央揃えにする */
+    gap: 4px;
+}
+/* 編集フォーム内のテキスト入力欄が可変幅で伸びるように設定 */
+.device-name-edit-form .device-name-input {
+    flex-grow: 1;
+    padding: 8px 12px; /* 高さをボタンと合わせる */
+    font-size: 14px;
+    margin-bottom: 0; /* 汎用スタイルを上書きして、フォーム内のマージンをなくす */
+    min-width: 0; /* flexアイテムが縮小できるようにするおまじない */
 }
 </style>
 </head>
@@ -134,15 +180,21 @@ a {
 <div id="auth-info" style="display: none;">
     <p style="font-size: 14px; color: #495057; margin-top: 0; margin-bottom: 8px;">現在、以下のプランで認証済みです。</p>
     <div style="background: var(--primary-color); color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 16px;">
-        <strong id="current-plan" style="font-size: 18px;">スタンダードプラン</strong>
+        <strong id="current-plan" style="font-size: 18px;"></strong>
     </div>
     <div style="font-size: 14px; color: #495057; margin-bottom: 16px;">
         <span style="font-weight: 600;">ライセンスキー:</span>
-        <strong id="current-license-key" style="font-family: monospace; letter-spacing: 1px;"></strong>
+        <strong id="current-license-key" style="font-family: monospace; letter-spacing: 1px; display: block; margin-top: 4px; background-color: #f8f9fa; padding: 8px; border-radius: 6px; text-align: center;"></strong>
+        <button id="copyKeyBtn" class="copy-key-btn"><i class="fa-solid fa-copy"></i>キーをコピー</button>
     </div>
     <div style="font-size: 14px; color: #495057; margin-bottom: 16px;">
         <span style="font-weight: 600;">有効期限:</span>
         <strong id="current-expires-at"></strong>
+    </div>
+    <!-- デバイス管理セクション -->
+    <div id="current-devices-section" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e9ecef;">
+        <p style="font-size: 14px; color: #495057; margin-top: 0; margin-bottom: 8px; font-weight: 600;">登録中のデバイス</p>
+        <ul id="current-device-list" class="device-list" style="margin-top: 0;"></ul>
     </div>
     <p style="font-size: 12px; color: #6c757d; margin-bottom: 8px;">このブラウザでの認証を解除する場合は、以下のボタンを押してください。</p>
     <button id="revokeLicenseBtn" style="background-color: #6c757d;">認証を解除する</button>
@@ -159,16 +211,41 @@ a {
 </div>
 
 <script>
+  // --- Google Analyticsの動的読み込み ---
+  const isProduction = window.location.hostname === 'tekeep.github.io';
+  const gaMeasurementId = 'G-Y15FLWQ7X1'; // 本番用ID
+
+  if (isProduction) {
+    const gtagScript = document.createElement('script');
+    gtagScript.async = true;
+    gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
+    document.head.appendChild(gtagScript);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', gaMeasurementId);
+    console.log(`Google Analyticsを読み込みました (ID: ${gaMeasurementId})`);
+  } else {
+    // 開発環境ではgtag関数をダミーで定義し、イベントトラッキング呼び出しでエラーが出ないようにする
+    window.gtag = function() {
+      console.log('GA Event (dev):', arguments);
+    };
+  }
+</script>
+<script>
 const authForm = document.getElementById('auth-form');
 const authInfoUI = document.getElementById('auth-info');
 const deviceManagementUI = document.getElementById('device-management');
 const messageArea = document.getElementById('message-area');
 const authFormDescription = authForm.querySelector('p');
+const copyKeyBtn = document.getElementById('copyKeyBtn');
 const backToAuthInfoContainer = document.getElementById('backToAuthInfoContainer');
 const licenseKeyInput = document.getElementById('licenseKeyInput');
 const submitBtn = document.getElementById('submitLicenseKey');
 const deviceList = document.getElementById('device-list');
 let currentLicenseKey = '';
+let currentDeviceId = '';
 const APP_NAME = "TeKeep!"; // このアプリケーションの名前を定義
 
 /**
@@ -186,8 +263,7 @@ function showDeviceManagementUI(devices) {
     deviceManagementUI.style.display = 'block';
     deviceList.innerHTML = '';
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentDeviceId = urlParams.get('deviceId');
+    currentDeviceId = new URLSearchParams(window.location.search).get('deviceId');
 
     devices.forEach(device => {
         const li = document.createElement('li');
@@ -234,6 +310,12 @@ function maskLicenseKey(key) {
     }
 }
 
+/** プランの内部名から表示名を取得する */
+function getPlanDisplayName(planName) {
+    const names = { 'free': 'フリー プラン', 'standard': 'スタンダード プラン', 'pro': 'プロ プラン' };
+    return names[planName] || `${planName} プラン`;
+}
+
 /**
  * ================= イベントリスナー =================
  */
@@ -242,14 +324,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const licenseKey = urlParams.get('key');
     const licensePlan = urlParams.get('plan');
     const expiresAt = urlParams.get('expiresAt');
+    currentDeviceId = urlParams.get('deviceId');
 
     if (licenseKey && licensePlan && licenseKey !== 'null' && licensePlan !== 'null') {
         // 認証済みの場合のUIを表示
         authForm.style.display = 'none';
         authInfoUI.style.display = 'block';
-        document.getElementById('current-plan').textContent = `${licensePlan.charAt(0).toUpperCase() + licensePlan.slice(1)} プラン`;
+        document.getElementById('current-plan').textContent = getPlanDisplayName(licensePlan);
         document.getElementById('current-license-key').textContent = maskLicenseKey(licenseKey);
         document.getElementById('current-expires-at').textContent = formatExpiresAt(expiresAt);
+        loadAndRenderDevices(licenseKey); // 認証済みデバイスリストを読み込み
+
+        // コピーボタンのイベントリスナーを設定
+        if (copyKeyBtn) {
+            copyKeyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(licenseKey).then(() => {
+                    const originalText = copyKeyBtn.innerHTML;
+                    copyKeyBtn.innerHTML = '<i class="fa-solid fa-check"></i>コピー完了';
+                    setTimeout(() => {
+                        copyKeyBtn.innerHTML = originalText;
+                    }, 2000);
+                });
+            });
+        }
     } else {
         // 未認証の場合のUIを表示
         showAuthForm();
@@ -264,15 +361,14 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function formatExpiresAt(expiresAtStr) {
     if (!expiresAtStr || expiresAtStr === 'null') return 'N/A';
-    try {
-        const d = new Date(expiresAtStr);
-        // ユーザーの期待に合わせて、表示上は「最終日の23時59分」まで有効であるように見せる
-        const displayDate = new Date(d.getTime() - 1); // 1ミリ秒引くことで、日付が変わる直前の時刻にする
-        const year = displayDate.getFullYear();
-        const month = displayDate.getMonth() + 1;
-        const date = displayDate.getDate();
-        return `${year}年${month}月${date}日 23:59 まで`;
-    } catch (e) { return '日付形式エラー'; }
+    // DBには「有効期限の翌日0時」が保存されているため、表示上は1日引く
+    const expiresDate = new Date(expiresAtStr);
+    expiresDate.setDate(expiresDate.getDate() - 1);
+
+    const year = expiresDate.getFullYear();
+    const month = expiresDate.getMonth() + 1;
+    const date = expiresDate.getDate();
+    return `${year}年${month}月${date}日 23:59 まで`;
 }
 
 document.getElementById('openPricingLink').addEventListener('click', (e) => {
@@ -312,24 +408,18 @@ submitBtn.addEventListener('click', async () => {
     messageArea.style.display = 'none';
 
     try {
-        let deviceId = new URLSearchParams(window.location.search).get('deviceId') || localStorage.getItem('deviceId');
-        if (!deviceId) {
-            deviceId = 'device_' + Date.now();
-            window.parent.postMessage({ type: 'setDeviceId', deviceId: deviceId }, '*');
-        }
+        const deviceId = currentDeviceId;
         const currentPlan = new URLSearchParams(window.location.search).get('plan') || 'free';
  
         // 親ウィンドウにEdge Functionの実行を依頼
-        window.parent.postMessage({
-            type: 'invokeFunction',
-            functionName: 'authenticate-license',
-            body: { appName: APP_NAME, licenseKey: key, deviceId: deviceId, deviceName: deviceName, currentPlan: currentPlan }
-        }, '*');
+        const requestType = 'invoke:authenticate-license';
+        window.parent.postMessage({ type: requestType, body: { appName: APP_NAME, licenseKey: key, deviceId: deviceId, deviceName: deviceName, currentPlan: currentPlan } }, '*');
 
         // 親ウィンドウからの結果を待つ
+        const responseType = 'response:authenticate-license';
         const response = await new Promise(resolve => {
             const listener = (event) => {
-                if (event.data && event.data.type === 'functionResponse' && event.data.functionName === 'authenticate-license') {
+                if (event.data && event.data.type === responseType) {
                     window.removeEventListener('message', listener);
                     resolve(event.data.response);
                 }
@@ -344,9 +434,10 @@ submitBtn.addEventListener('click', async () => {
             // UIを認証済み画面に切り替え、成功メッセージを表示
             authForm.style.display = 'none';
             authInfoUI.style.display = 'block';
-            document.getElementById('current-plan').textContent = `${response.plan.charAt(0).toUpperCase() + response.plan.slice(1)} プラン`;
+            document.getElementById('current-plan').textContent = getPlanDisplayName(response.plan);
             document.getElementById('current-license-key').textContent = maskLicenseKey(response.key);
             document.getElementById('current-expires-at').textContent = formatExpiresAt(response.expiresAt);
+            loadAndRenderDevices(response.key); // 認証成功後にもデバイスリストを更新
             showMessage('ライセンス認証に成功しました。', 'success');
             sendHeight(); // 高さを再計算
         } else if (response.status === 'device_limit_exceeded') {
@@ -368,25 +459,26 @@ submitBtn.addEventListener('click', async () => {
 });
 
 deviceList.addEventListener('click', async (e) => {
-    if (e.target.classList.contains('remove-device-btn')) {
-        const btn = e.target;
-        const deviceIdToRemove = btn.dataset.deviceId;
+    const removeBtn = e.target.closest('.remove-device-btn');
+    if (removeBtn) {
+        if (!confirm('このデバイスの登録を解除します。よろしいですか？')) return;
+
+        const btn = removeBtn;
+        const deviceIdToRemove = removeBtn.dataset.deviceId;
         const key = currentLicenseKey;
 
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         try {
             // 親ウィンドウにEdge Functionの実行を依頼
-            window.parent.postMessage({
-                type: 'invokeFunction',
-                functionName: 'remove-device',
-                body: { appName: APP_NAME, licenseKey: key, deviceIdToRemove: deviceIdToRemove }
-            }, '*');
+            const requestType = 'invoke:remove-device';
+            window.parent.postMessage({ type: requestType, body: { appName: APP_NAME, licenseKey: key, deviceIdToRemove: deviceIdToRemove } }, '*');
 
             // 親ウィンドウからの結果を待つ
+            const responseType = 'response:remove-device';
             const response = await new Promise(resolve => {
                 const listener = (event) => {
-                    if (event.data && event.data.type === 'functionResponse' && event.data.functionName === 'remove-device') {
+                    if (event.data && event.data.type === responseType) {
                         window.removeEventListener('message', listener);
                         resolve(event.data.response);
                     }
@@ -415,9 +507,10 @@ deviceList.addEventListener('click', async (e) => {
 });
 
 document.getElementById('revokeLicenseBtn').addEventListener('click', async () => {
+    if (!confirm('このデバイスの登録を解除します。よろしいですか？')) return;
+
     const urlParams = new URLSearchParams(window.location.search);
-    // 認証直後の解除に対応するため、まず内部変数の最新キーを使い、なければURLパラメータを参照する
-    const key = currentLicenseKey || urlParams.get('key');
+    const key = urlParams.get('key'); // 認証解除は常に表示中のキーで行う
     const deviceIdToRemove = urlParams.get('deviceId');
     if (!key || !deviceIdToRemove) return;
 
@@ -427,16 +520,14 @@ document.getElementById('revokeLicenseBtn').addEventListener('click', async () =
 
     try {
         // 親ウィンドウにEdge Functionの実行を依頼
-        window.parent.postMessage({
-            type: 'invokeFunction',
-            functionName: 'remove-device',
-            body: { appName: APP_NAME, licenseKey: key, deviceIdToRemove: deviceIdToRemove }
-        }, '*');
+        const requestType = 'invoke:remove-device';
+        window.parent.postMessage({ type: requestType, body: { appName: APP_NAME, licenseKey: key, deviceIdToRemove: deviceIdToRemove } }, '*');
 
         // 親ウィンドウからの結果を待つ
+        const responseType = 'response:remove-device';
         const response = await new Promise(resolve => {
             const listener = (event) => {
-                if (event.data && event.data.type === 'functionResponse' && event.data.functionName === 'remove-device') {
+                if (event.data && event.data.type === responseType) {
                     window.removeEventListener('message', listener);
                     resolve(event.data.response);
                 }
@@ -462,6 +553,108 @@ document.getElementById('revokeLicenseBtn').addEventListener('click', async () =
 });
 
 document.getElementById('backToAuthFormBtn').addEventListener('click', showAuthForm);
+
+/**
+ * 認証済みデバイスのリストを読み込んで描画する
+ * @param {string} licenseKey - ライセンスキー
+ */
+async function loadAndRenderDevices(licenseKey) {
+    const listEl = document.getElementById('current-device-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<li><i class="fa-solid fa-spinner fa-spin"></i> デバイス情報を読み込み中...</li>';
+
+    try {
+        // authenticate-licenseを流用してデバイスリストを取得
+        const requestType = 'invoke:authenticate-license';
+        window.parent.postMessage({ type: requestType, body: { appName: APP_NAME, licenseKey: licenseKey, deviceId: 'dummy', deviceName: 'dummy', currentPlan: 'free' } }, '*');
+
+        const responseType = 'response:authenticate-license';
+        const response = await new Promise(resolve => {
+            const listener = (event) => {
+                if (event.data && event.data.type === responseType) {
+                    window.removeEventListener('message', listener);
+                    resolve(event.data.response);
+                }
+            };
+            window.addEventListener('message', listener);
+        });
+
+        if (response.devices) {
+            listEl.innerHTML = '';
+            response.devices.forEach(device => {
+                const isCurrent = device.id === currentDeviceId;
+                const li = document.createElement('li');
+                li.className = 'device-item';
+                li.innerHTML = `
+                    <div style="flex-grow: 1;"> <!-- このdivが名前とフォームのコンテナになる -->
+                        <div class="device-name-display">
+                            <span class="device-name-text">${device.name}</span> ${isCurrent ? '<span class="current-device-label">(このデバイス)</span>' : ''}
+                        </div>
+                        <form class="device-name-edit-form">
+                            <input type="text" value="${device.name}" class="device-name-input" placeholder="例: 自宅のPC, 通勤用のスマホ" required><button type="submit" class="save-device-name-btn" data-device-id="${device.id}">保存</button></form>
+                    </div>
+                    <button class="edit-device-btn" data-device-id="${device.id}" title="デバイス名を編集します"><i class="fa-solid fa-pencil" style="margin-right: 4px;"></i>編集</button>
+                `;
+                listEl.appendChild(li);
+            });
+        } else {
+            listEl.innerHTML = '<li>デバイス情報がありません。</li>';
+        }
+    } catch (e) {
+        listEl.innerHTML = '<li>デバイス情報の読み込みに失敗しました。</li>';
+    } finally {
+        sendHeight();
+    }
+}
+
+// デバイスリストのイベント委譲
+document.getElementById('current-device-list').addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.edit-device-btn');
+    const saveBtn = e.target.closest('.save-device-name-btn');
+    const item = e.target.closest('.device-item');
+    if (!item) return;
+
+    // 「編集」ボタンの処理
+    if (editBtn) {
+        item.querySelector('.device-name-display').style.display = 'none';
+        item.querySelector('.device-name-edit-form').style.display = 'flex';
+        editBtn.style.display = 'none'; // 編集ボタンを隠す
+        sendHeight();
+    }
+
+    // 「保存」ボタンの処理
+    if (saveBtn) {
+        e.preventDefault();
+        const deviceId = saveBtn.dataset.deviceId;
+        const newDeviceName = item.querySelector('.device-name-input').value.trim();
+        const licenseKey = new URLSearchParams(window.location.search).get('key');
+
+        if (!newDeviceName) { alert('デバイス名を入力してください。'); return; }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+        // 親ウィンドウにEdge Functionの実行を依頼
+        const requestType = 'invoke:update-device-name';
+        window.parent.postMessage({ type: requestType, body: { appName: APP_NAME, licenseKey, deviceId, newDeviceName } }, '*');
+
+        const responseType = 'response:update-device-name';
+        const response = await new Promise(resolve => {
+            const listener = (event) => {
+                if (event.data && event.data.type === responseType) { window.removeEventListener('message', listener); resolve(event.data.response); }
+            };
+            window.addEventListener('message', listener);
+        });
+
+        if (response.status === 'success') {
+            await loadAndRenderDevices(licenseKey); // 成功したらリストを再読み込み
+        } else {
+            alert(response.message || '更新に失敗しました。');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '保存';
+        }
+    }
+});
 
 // 親ウィンドウに高さを送信
 function sendHeight() {

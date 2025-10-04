@@ -11,18 +11,11 @@
 <meta property="og:url" content="https://tekeep.github.io">
 <meta property="og:image" content="https://tekeep.github.io/images/logo.png">
 <meta name="twitter:card" content="summary_large_image">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-XXXXXXXXXX');
-</script>
-
 <title>計算結果 - TeKeep! (テイキープ)</title>
+<!-- Favicon Settings -->
 <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png" sizes="180x180">
+<link rel="icon" type="image/png" href="images/icon-192x192.png" sizes="192x192">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
 :root {
@@ -46,7 +39,9 @@
 .modal-overlay.is-visible { opacity: 1; visibility: visible; }
 .modal-content {
   background-color: white; border-radius: 12px;
-  width: 90%; max-width: 800px; height: 80%; overflow: hidden;
+  width: 90%; max-width: 800px; height: 80%;
+  max-height: 90vh; /* 画面の高さの90%を最大値とする */
+  overflow-y: auto; /* コンテンツがmax-heightを超えたらスクロール */
   box-shadow: 0 5px 20px rgba(0,0,0,0.2);
   display: flex; flex-direction: column;
   transform: scale(0.9); transition: transform 0.3s;
@@ -55,7 +50,7 @@
 .modal-header { padding: 12px 20px; border-bottom: 1px solid var(--light-gray); display: flex; justify-content: space-between; align-items: center; }
 .modal-header h4 { margin: 0; font-size: 16px; }
 .modal-close-btn { font-size: 24px; color: #888; cursor: pointer; background: none; border: none; }
-.modal-body { flex-grow: 1; padding: 0; overflow: hidden; }
+.modal-body { flex-grow: 1; padding: 0; }
 .modal-body iframe { width: 100%; height: 100%; border: 0; }
 
 /* --- フッター --- */
@@ -176,10 +171,15 @@ button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transi
 .savings-card .amount span { font-size: 1rem; font-weight: normal; color: var(--text-color); margin-left: 4px; }
 .savings-card .emphasis { color: var(--accent-color); font-weight: 700; }
 #purchaseList li.calendar-link-item {
-  list-style-type: none; background-color: var(--light-gray); padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid #dee2e6;
+  list-style-type: none; background-color: var(--light-gray); padding: 8px 6px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid #dee2e6;
   cursor: pointer;
   text-align: center; /* テキストを水平中央揃えにする */
   transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  line-height: 1.3; /* 行の高さを詰める */
 }
 #purchaseList li.calendar-link-item:hover { background-color: #e2e6ea; transform: translateY(-1px); }
 #calendarPagingControls {
@@ -223,7 +223,7 @@ button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transi
 </nav>
 
 <header style="text-align: center; margin-bottom: 30px;">
-  <a href="index.html" style="text-decoration: none; display: inline-block;">
+  <a href="." style="text-decoration: none; display: inline-block;">
     <img src="images/logo.png" alt="TeKeep! ロゴ" class="logo-img" style="display: block; margin: 0 auto 24px;">
   </a>
   <div style="border-top: 1px solid var(--border-color); margin-bottom: 16px;"></div>
@@ -235,10 +235,10 @@ button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transi
 <div id="errorScreen" style="display: none; text-align: center; padding: 40px 20px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
   <h2 style="font-size: 1.8rem; margin-top: 0;"><i class="fa-solid fa-circle-exclamation" style="color: var(--accent-color); margin-bottom: 12px;"></i><br>計算結果がありません</h2>
   <p style="font-size: 16px; line-height: 1.7; margin-top: 16px; color: var(--text-color);">
-    このURLには計算結果の情報が含まれていません。<br>
+    表示できる計算結果がありません。<br>
     お手数ですが、トップページから再度計算を実行してください。
   </p>
-  <a href="index.html" class="button" style="margin-top: 24px; display: inline-block; min-width: 200px;">トップページに戻る</a>
+    <a href="." class="button" style="margin-top: 24px; display: inline-block; min-width: 200px;">トップページに戻る</a>
 </div>
 
 <!-- お問い合わせモーダル -->
@@ -282,7 +282,7 @@ button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transi
   </div>
 
   <div id="purchaseListContainer" class="card">
-    <div class="row-head"><h4 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-list-check" style="color: var(--primary-color); font-size: 20px;"></i>最適な購入プラン</h4></div>
+    <div class="row-head"><h4 style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-list-check" style="color: var(--primary-color); font-size: 20px;"></i>最適な定期券購入プラン</h4></div>
     <ul id="purchaseList" style="margin-top: 14px;"></ul>
     <p id="calendar-link-description" style="font-size: 13px; color: #495057; margin-top: 12px; margin-bottom: 0px;; padding: 8px; background-color: #f8f9fa; border-radius: 6px; text-align: center; display: none;">
       <i class="fa-solid fa-arrow-pointer" style="margin-right: 4px;"></i>上記の日付をクリックすると、Googleカレンダーに登録できます。
@@ -309,7 +309,18 @@ button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transi
 
   <!-- ▼▼▼ 広告表示エリア ▼▼▼ -->
   <div id="ad-container-result" style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; margin-top: 24px; margin-bottom: 24px; text-align: center;">
-    <!-- ここにAmazonアソシエイトなどの広告タグを挿入 -->
+    <!-- Amazonアソシエイト おすすめ商品ウィジェット -->
+    <script type="text/javascript">
+      amzn_assoc_placement = "adunit0";
+      amzn_assoc_tracking_id = "tekeep-22";
+      amzn_assoc_ad_mode = "search";
+      amzn_assoc_ad_type = "smart";
+      amzn_assoc_marketplace = "amazon";
+      amzn_assoc_region = "JP";
+      amzn_assoc_default_search_phrase = "節約"; // 検索キーワード
+      amzn_assoc_search_bar = "false"; // 検索バー非表示
+    </script>
+    <script src="//z-fe.amazon-adsystem.com/widgets/onejs?MarketPlace=JP"></script>
   </div>
   <!-- ▲▲▲ 広告表示エリア ▲▲▲ -->
 
@@ -346,19 +357,42 @@ button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transi
     </div>
   </div>
   <div id="bottomBtn">
-    <button id="recalculateBtn" onclick="window.location.href='index.html'" style="display: block; max-width: 980px; margin: 0 auto; width: calc(100% - 30px);">再計算する</button>
+    <button id="recalculateBtn" onclick="window.location.href='.'" style="display: block; max-width: 980px; margin: 0 auto; width: calc(100% - 30px);">再計算する</button>
   </div>
 </div>
 
 <footer style="display: none;" id="resultFooter">
-  <a href="#" id="openContactFooter">お問い合わせ</a>
+  <a href="#" id="openContactFooter">お問い合わせ</a>|
   <a href="#" id="openTokushohoModal">特定商取引法に基づく表記</a>
-  <span>&copy; 2025 TeKeep!</span>
+  <div style="margin-top: 8px;">&copy; 2025 TeKeep!</div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- グラフ上にデータラベルを表示するためのChart.jsプラグイン -->
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+  // --- Google Analyticsの動的読み込み ---
+  const isProduction = window.location.hostname === 'tekeep.github.io';
+  const gaMeasurementId = 'G-Y15FLWQ7X1'; // 本番用ID
+
+  if (isProduction) {
+    const gtagScript = document.createElement('script');
+    gtagScript.async = true;
+    gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
+    document.head.appendChild(gtagScript);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', gaMeasurementId);
+    console.log(`Google Analyticsを読み込みました (ID: ${gaMeasurementId})`);
+  } else {
+    // 開発環境ではgtag関数をダミーで定義し、イベントトラッキング呼び出しでエラーが出ないようにする
+    window.gtag = function() {
+      console.log('GA Event (dev):', arguments);
+    };
+  }
+</script>
 <script>
 function atMidnight(d){ const nd=new Date(d.getFullYear(),d.getMonth(),d.getDate()); nd.setHours(0,0,0,0); return nd; }
 let myChart = null; // Chart.jsのインスタンスを保持するグローバル変数
@@ -391,14 +425,18 @@ function renderResult(response, params){
 
   // 購入一覧表示
   const purchasePath = response.result.purchasePath;
-  const purchaseDatesStr = purchasePath.match(/\d{4}-\d{2}-\d{2}/g) || [];
-  const purchaseDays = purchaseDatesStr.map(d => atMidnight(new Date(d)));
+  // "YYYY-MM-DD (Nヶ月)" という形式の文字列をパースする
+  const purchaseItems = purchasePath.split(', ').filter(Boolean).map(itemStr => {
+    const match = itemStr.match(/(\d{4}-\d{2}-\d{2})\s*\((\d+)ヶ月\)/);
+    if (!match) return null;
+    return { date: atMidnight(new Date(match[1])), type: `${match[2]}ヶ月` };
+  }).filter(Boolean);
+
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
   let listHTML="";
-  purchaseDays.forEach(d => {
-    const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} (${weekDays[d.getDay()]})`;
-    // li要素自体をクリック可能にし、data属性とクラスを付与する
-    listHTML += `<li data-date="${dateToKey(d)}" class="calendar-link-item">${dateStr}</li>`;
+  purchaseItems.forEach(item => {
+    const dateStr = `${item.date.getFullYear()}/${String(item.date.getMonth()+1).padStart(2, '0')}/${String(item.date.getDate()).padStart(2, '0')} (${weekDays[item.date.getDay()]})`;
+    listHTML += `<li data-date="${dateToKey(item.date)}" data-type="${item.type}" class="calendar-link-item"><span>${dateStr}</span><strong style="color: var(--accent-color); ">[${item.type}]</strong></li>`;
   });
   document.getElementById("purchaseList").innerHTML=listHTML;
 
@@ -410,6 +448,12 @@ function renderResult(response, params){
 
   // カレンダー描画 (アコーディオンが開かれるときに遅延実行される)
   // toggleAccordion(); // 初期表示で開きたい場合はコメントを外す
+
+  // 有料プランの場合は広告を非表示にする
+  const adContainer = document.getElementById('ad-container-result');
+  if (params.licensePlan && adContainer) {
+      adContainer.style.display = 'none';
+  }
 }
 
 function drawChart() {
@@ -417,22 +461,18 @@ function drawChart() {
   const comparisonCosts = currentResultData.result.comparisonCosts || {};
 
   // --- ベースラインプランのラベルを決定するロジック ---
-  let baselineLabel = Object.keys(comparisonCosts).find(key => key.includes('定期で更新')); // 1. 新規計算時の動的ラベルを探す
-
-  if (!baselineLabel && comparisonCosts['ベースラインプラン'] !== undefined && currentParams) {
-    // 2. 1で見つからず、キャッシュ利用時（'ベースラインプラン'キーが存在）の場合
-    // currentParams を元に、ユーザーが選択した最長の定期券種別からラベルを再生成
+  let baselineLabel = Object.keys(comparisonCosts).find(key => key.includes('定期で更新'));
+  if (!baselineLabel && currentParams) {
+    // キャッシュ利用時など、動的ラベルが見つからない場合はパラメータから再生成
     if (currentParams.sixMonthPass > 0) baselineLabel = '6ヶ月定期で更新';
     else if (currentParams.threeMonthPass > 0) baselineLabel = '3ヶ月定期で更新';
     else if (currentParams.monthlyPass > 0) baselineLabel = '1ヶ月定期で更新';
   }
-  
-  // 3. 最終的なフォールバック
   if (!baselineLabel) {
       baselineLabel = 'ベースラインプラン';
   }
   
-  // comparisonCostsオブジェクトのキーを動的に書き換える
+  // comparisonCostsオブジェクトのキーを動的ラベルに統一する
   if (baselineLabel !== 'ベースラインプラン' && comparisonCosts['ベースラインプラン'] !== undefined) {
       comparisonCosts[baselineLabel] = comparisonCosts['ベースラインプラン'];
       delete comparisonCosts['ベースラインプラン'];
@@ -442,8 +482,8 @@ function drawChart() {
   const costs = [
     { label: '最適プラン', cost: currentResultData.result.totalCost, color: getComputedStyle(document.documentElement).getPropertyValue('--primary-color') },
   ];
-  // キャッシュから来たデータ('月初購入プラン')と、新規計算のデータ('月初〇ヶ月定期')の両方に対応
-  const shortestPassOnFirstLabel = Object.keys(comparisonCosts).find(key => key.startsWith('月初')) || '月初購入プラン';
+  // '月初'で始まるキーを単純に探す
+  const shortestPassOnFirstLabel = Object.keys(comparisonCosts).find(key => key.startsWith('月初'));
   const shortestPassOnFirstCost = comparisonCosts[shortestPassOnFirstLabel];
 
   // 比較プランが存在する場合のみcosts配列に追加
@@ -458,7 +498,7 @@ function drawChart() {
   document.getElementById('baselinePlanDescription').innerHTML = `<strong>${baselineLabel}:</strong> あなたが選択した最も期間の長い定期券を、期間が切れるたびに買い続けた場合のコストです。`;
   // 月初購入プランが存在する場合のみ、凡例の説明を表示
   const monthlyOnFirstDesc = document.getElementById('monthlyOnFirstDescription');
-  if (shortestPassOnFirstLabel) {
+  if (shortestPassOnFirstCost) { // ラベルではなくコストの存在で判定
     monthlyOnFirstDesc.innerHTML = `<strong>${shortestPassOnFirstLabel}:</strong> 毎月1日に、あなたが選択した最短期間の定期を買い続けた場合のコストです。`;
     monthlyOnFirstDesc.style.display = 'list-item';
   } else {
@@ -475,17 +515,12 @@ function drawChart() {
 
   // --- フリープランユーザー向けのプロモーション表示 ---
   const promoBox = document.getElementById('plan-promo');
-  // [修正] localStorageではなく、計算実行時のパラメータからプラン情報を取得
   if (!currentParams.licensePlan && promoBox) {
     promoBox.style.display = 'block';
     promoBox.innerHTML = `
       今回の節約額は <strong>${savings.toLocaleString()}円</strong> でした！<br>
-      <a href="#" id="promo-link">スタンダードプラン (480円/年, 税込)</a> にアップグレードすると、シミュレーション期間が<strong>最大12ヶ月</strong>に延長されます。より長期のシミュレーションで、さらなる節約を目指しませんか？
+      <strong>スタンダードプラン (480円/年, 税込)</strong> にアップグレードすると、シミュレーション期間が<strong>最大12ヶ月</strong>に延長されます。より長期のシミュレーションで、さらなる節約を目指しませんか？
     `;
-    document.getElementById('promo-link').addEventListener('click', (e) => {
-      e.preventDefault();
-      if (window.open_pricingModal) window.open_pricingModal();
-    });
   }
   
   const ctx=document.getElementById('savingsChart').getContext('2d');
@@ -569,16 +604,10 @@ const getWeekNumber = (d, weekStartDay) => {
 function isHolidayBasedOnParams(dateKey, dateObj, params) {
     if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return false;
 
-    // URLパラメータから渡された表示用の休日リストを使用
+    // localStorage経由で渡された表示用の休日リストを使用
     const calendarHolidaysYmdStr = params.calendarHolidays || '';
-    const holidaysSet = new Set();
-    calendarHolidaysYmdStr.split(',').forEach(h => {
-      if (h.length === 8) {
-        // yyyymmdd形式をyyyy-mm-dd形式に復元
-        holidaysSet.add(`${h.substring(0, 4)}-${h.substring(4, 6)}-${h.substring(6, 8)}`);
-      }
-    });
-
+    // "yyyy-MM-dd"形式のカンマ区切り文字列を直接Setに変換する
+    const holidaysSet = new Set(calendarHolidaysYmdStr.split(','));
     return holidaysSet.has(dateKey);
 }
 
@@ -743,8 +772,10 @@ function setupCalendarLinks() {
   links.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault(); // aタグのデフォルトの画面遷移を無効化
-      const dateKey = e.target.dataset.date;
-      if (!dateKey) return;
+      const clickedElement = e.currentTarget; // イベントリスナーが設定されたli要素自体を取得
+      const dateKey = clickedElement.dataset.date;
+      const passType = clickedElement.dataset.type; // data-type属性を取得
+      if (!dateKey || !passType) return;
 
       // Google Analytics イベントトラッキング
       if (typeof gtag === 'function') gtag('event', 'click_calendar_link');
@@ -756,7 +787,7 @@ function setupCalendarLinks() {
       const nextDay = new Date(date);
       nextDay.setDate(nextDay.getDate() + 1);
       const endDateFmt = `${nextDay.getFullYear()}${String(nextDay.getMonth() + 1).padStart(2, '0')}${String(nextDay.getDate()).padStart(2, '0')}`;
-      const eventTitle = encodeURIComponent('【TeKeep!】定期券の購入日');
+      const eventTitle = encodeURIComponent(`【TeKeep!】定期券の購入日 (${passType})`);
       const eventDetails = encodeURIComponent('TeKeep!で計算された定期券の購入予定日です。');
       const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${startDateFmt}/${endDateFmt}&details=${eventDetails}&sf=true&output=xml`;
 
@@ -770,28 +801,29 @@ function setupCalendarLinks() {
 
 // ページ読み込み完了時にLocalStorageから結果を読み込んで描画
 document.addEventListener('DOMContentLoaded', () => {
-  // URLのクエリパラメータからデータを取得
-  const urlParams = new URLSearchParams(window.location.search);
-  const resultString = urlParams.get('result');
-  const paramsString = urlParams.get('params');
+  // localStorageから一時的な結果データを取得
+  const resultDataString = localStorage.getItem('simulationResultData');
 
   let resultData = null;
   let paramsData = {}; // 初期値を空のオブジェクトに
 
-  if (resultString && paramsString) {
-    resultData = JSON.parse(decodeURIComponent(resultString));
-    paramsData = JSON.parse(decodeURIComponent(paramsString));
+  if (resultDataString) {
+    // --- データが存在する場合 ---
+    const parsedData = JSON.parse(resultDataString);
+    resultData = parsedData.resultData;
+    paramsData = parsedData.paramsData;
 
-    // URLから受け取ったyyyymmdd形式のstartDateをyyyy-mm-dd形式に復元
-    if (paramsData.startDate && paramsData.startDate.length === 8) {
-      const s = paramsData.startDate;
-      paramsData.startDate = `${s.substring(0, 4)}-${s.substring(4, 6)}-${s.substring(6, 8)}`;
-    }
+    // 不要になった一時データをlocalStorageから削除
+    localStorage.removeItem('simulationResultData');
 
     // --- パラメータが存在する場合のみ、結果表示処理を実行 ---
     renderResult(resultData, paramsData);
     document.getElementById('resultScreen').style.display = 'block';
     document.getElementById('resultFooter').style.display = 'block';
+
+    // URLから不要なパラメータを削除（リロード対策）
+    window.history.replaceState({}, document.title, window.location.pathname);
+
   } else {
     // --- パラメータがない場合は、エラー画面を表示 ---
     document.getElementById('resultScreen').style.display = 'none';
@@ -854,7 +886,7 @@ function setupModal(modalId, openBtnId) {
   const updateIframeSrc = () => {
     if (modalId === 'licenseModal') {
       const licenseKey = localStorage.getItem('licenseKey');
-      const licensePlan = currentParams.licensePlan; // [修正]
+      const licensePlan = currentParams.licensePlan;
       const deviceId = localStorage.getItem('userId');
       const iframe = document.getElementById('licenseIframe');
       iframe.src = `license.html?key=${encodeURIComponent(licenseKey || '')}&plan=${encodeURIComponent(licensePlan || '')}&deviceId=${encodeURIComponent(deviceId || '')}`;
@@ -876,7 +908,7 @@ function setupModal(modalId, openBtnId) {
         newIframe.frameBorder = '0';
         newIframe.marginHeight = '0';
         newIframe.marginWidth = '0';
-        const deviceId = currentParams.deviceId || 'N/A'; // 修正: パラメータからdeviceIdを取得
+        const deviceId = currentParams.deviceId || 'N/A';
         const formId = '1FAIpQLSdl1Tjp7hJAyCirrE_2LoL_4DWhMw2OyEHLEWBL-_WlC2rYbg'; // フォーム自体のID
         const entryId = '1585594458'; // entry ID
         newIframe.src = `https://docs.google.com/forms/d/e/${formId}/viewform?embedded=true&entry.${entryId}=${encodeURIComponent(deviceId)}`;

@@ -105,6 +105,29 @@
 </div>
 
 <script>
+  // --- Google Analyticsの動的読み込み ---
+  const isProduction = window.location.hostname === 'tekeep.github.io';
+  const gaMeasurementId = 'G-Y15FLWQ7X1'; // 本番用ID
+
+  if (isProduction) {
+    const gtagScript = document.createElement('script');
+    gtagScript.async = true;
+    gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
+    document.head.appendChild(gtagScript);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', gaMeasurementId);
+    console.log(`Google Analyticsを読み込みました (ID: ${gaMeasurementId})`);
+  } else {
+    // 開発環境ではgtag関数をダミーで定義し、イベントトラッキング呼び出しでエラーが出ないようにする
+    window.gtag = function() {
+      console.log('GA Event (dev):', arguments);
+    };
+  }
+</script>
+<script>
     // お問い合わせフォームへのリンクをクリックした際に、親ウィンドウにメッセージを送信
     document.getElementById('openContactFormLink').addEventListener('click', (e) => {
         e.preventDefault();

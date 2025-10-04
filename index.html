@@ -2,26 +2,23 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
+<meta name="google-site-verification" content="xwOXmN89Tu9cdjdS4pfsWbUWGOpT1GGcSHlSdmn8mME" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <!-- SEO & OGP -->
-<meta name="description" content="TeKeep!は、電車やバスの通勤・通学費を節約するための無料シミュレーター。定期券と切符、どちらがお得？あなたの休日設定に合わせて、1年間の交通費が最も安くなる購入プランを簡単に見つけ、無駄な出費を抑えましょう。">
+<meta name="description" content="TeKeep!は、電車やバスの通勤・通学費を節約するための交通費シミュレーター。無料で始められ、定期券と切符のどちらがお得か簡単に比較できます。あなたの休日設定に合わせて、交通費が最も安くなる購入プランを簡単に見つけ、無駄な出費を抑えましょう。">
+<meta name="keywords" content="定期券, 交通費, 節約, 通勤, 通学, 最安, シミュレーター, TeKeep, テレワーク, 比較, 電車, 1ヶ月定期, 3ヶ月定期, 6ヶ月定期, 休日設定">
 <meta property="og:title" content="TeKeep! | あなたの交通費、最適化します">
-<meta property="og:description" content="TeKeep!は、電車やバスの通勤・通学費を節約するための無料シミュレーター。定期券と切符、どちらがお得？あなたの休日設定に合わせて、1年間の交通費が最も安くなる購入プランを簡単に見つけ、無駄な出費を抑えましょう。">
+<meta property="og:description" content="TeKeep!は、電車やバスの通勤・通学費を節約するための交通費シミュレーター。無料で始められ、定期券と切符のどちらがお得か簡単に比較できます。あなたの休日設定に合わせて、交通費が最も安くなる購入プランを簡単に見つけ、無駄な出費を抑えましょう。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://tekeep.github.io">
 <meta property="og:image" content="https://tekeep.github.io/images/logo.png">
 <meta name="twitter:card" content="summary_large_image">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-XXXXXXXXXX');
-</script>
-
+<!-- Stripe.jsを読み込む -->
+<script src="https://js.stripe.com/v3/"></script>
+<!-- Favicon Settings -->
 <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png" sizes="180x180">
+<link rel="icon" type="image/png" href="images/icon-192x192.png" sizes="192x192">
 <!-- /SEO & OGP -->
 <title>TeKeep! | あなたの交通費、最適化します</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -214,7 +211,9 @@ button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transi
 .modal-overlay.is-visible { opacity: 1; visibility: visible; }
 .modal-content {
   background-color: white; border-radius: 12px;
-  width: 90%; max-width: 800px; height: 80%; overflow: hidden;
+  width: 90%; max-width: 800px; height: 80%;
+  max-height: 90vh; /* 画面の高さの90%を最大値とする */
+  overflow-y: auto; /* コンテンツがmax-heightを超えたらスクロール */
   box-shadow: 0 5px 20px rgba(0,0,0,0.2);
   display: flex; flex-direction: column;
   transform: scale(0.9); transition: transform 0.3s;
@@ -223,8 +222,105 @@ button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transi
 .modal-header { padding: 12px 20px; border-bottom: 1px solid var(--light-gray); display: flex; justify-content: space-between; align-items: center; }
 .modal-header h4 { margin: 0; font-size: 16px; }
 .modal-close-btn { font-size: 24px; color: #888; cursor: pointer; background: none; border: none; }
-.modal-body { flex-grow: 1; padding: 0; overflow-y: auto; } /* overflow-y: auto に変更 */
+.modal-body { flex-grow: 1; padding: 0; }
 .modal-body iframe { width: 100%; height: 100%; border: 0; }
+
+/* --- 決済完了モーダル --- */
+.license-key-display {
+  background-color: var(--light-gray);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--text-color);
+  text-align: center;
+  margin: 16px 0;
+  word-break: break-all;
+}
+.payment-modal-body {
+  padding: 20px;
+  min-height: 400px; /* Stripe Elementsが描画されるまでの最低限の高さを確保 */
+}
+/* 決済モーダルのヘッダーを固定するためのスタイル */
+#paymentModal .modal-content {
+  height: 80%;
+  display: flex;
+  flex-direction: column;
+}
+.payment-modal-body {
+  flex-grow: 1; /* ヘッダー以外の残りの高さを埋める */
+  overflow-y: auto; /* コンテンツがはみ出したらスクロール */
+}
+/* Stripe Checkoutがマウントされるコンテナ */
+#checkout {
+  width: 100%;
+}
+/* Stripeが生成するiframeのスタイルを調整 */
+#checkout iframe {
+  width: 100% !important;
+  min-height: 400px;
+}
+.copy-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.copy-btn:hover {
+  background-color: var(--primary-hover-color);
+}
+.copy-btn .fa-solid {
+  margin-right: 8px;
+}
+/* license.htmlから移植: コピーボタンのスタイル */
+.copy-key-btn {
+    width: auto !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+    background-color: #6c757d !important;
+    color: white !important;
+    margin-top: 8px; /* 上マージンを追加 */
+}
+.copy-key-btn:hover {
+    background-color: #5a6268 !important;
+}
+
+/* 決済完了モーダルの情報表示スタイル */
+.payment-info-group {
+  font-size: 14px;
+  color: #495057;
+  margin-bottom: 16px;
+}
+.payment-info-group .info-label {
+  font-weight: 600;
+}
+.payment-info-group .info-value {
+  font-weight: bold;
+}
+.plan-display-box {
+  background: var(--primary-color);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.plan-display-box .info-value {
+  font-size: 18px;
+}
+/* レスポンシブな改行のためのスタイル */
+@media (max-width: 480px) {
+  .header-catchphrase .break-on-mobile {
+    display: block; /* 画面幅が狭い時だけ改行 */
+  }
+}
 </style>
 <style>
 /* --- フッター --- */
@@ -257,10 +353,13 @@ footer a:hover { text-decoration: underline; }
 </nav>
 
 <header style="text-align: center; margin-bottom: 34px;">
-  <a href="index.html" style="text-decoration: none; display: inline-block;">
+  <a href="." style="text-decoration: none; display: inline-block;">
     <img src="images/logo.png" alt="TeKeep! - 交通費節約シミュレーターのロゴ" class="logo-img">
   </a>
-  <h1 class="header-catchphrase" style="font-size: 1.1rem; font-weight: 600; margin-top: 4px;">通勤・通学の交通費を節約する定期券購入シミュレーター</h1>
+  <h1 class="header-catchphrase" style="font-size: 1.1rem; font-weight: 600; margin-top: 4px; line-height: 1.5;">
+    <span>通勤・通学の交通費を節約する</span>
+    <span class="break-on-mobile">定期券購入シミュレーター</span>
+  </h1>
 </header>
 
 <!-- ライセンス認証モーダル -->
@@ -311,6 +410,77 @@ footer a:hover { text-decoration: underline; }
   </div>
 </div>
 
+<!-- 決済埋め込み用モーダル -->
+<div id="paymentModal" class="modal-overlay">
+  <div class="modal-content" style="height: auto; max-width: 500px;">
+    <div class="modal-header">
+      <h4>お支払い情報の入力</h4>
+      <button class="modal-close-btn">&times;</button>
+    </div>
+    <div class="payment-modal-body">
+      <div id="checkout"></div>
+    </div>
+  </div>
+</div>
+
+<!-- デバイス名設定モーダル -->
+<div id="deviceNameModal" class="modal-overlay">
+  <div class="modal-content" style="height: auto; max-width: 500px;">
+    <div class="modal-header">
+      <h4>デバイス名の設定</h4>
+      <!-- このモーダルは閉じさせない -->
+    </div>
+    <div class="modal-body" style="padding: 20px;">
+      <p style="font-size: 14px; line-height: 1.6; margin-top: 0;">
+        このデバイスを識別するための名前を設定してください。<br>
+        この名前は、後からライセンス情報画面で変更できます。
+      </p>
+      <div id="deviceNameMessage" class="message-area error" style="margin-top: 16px; display: none;"></div>
+      <input type="text" id="deviceNameInput" placeholder="例: 自宅のPC, 通勤用のスマホ" style="margin-top: 16px;">
+      <button id="submitDeviceNameBtn" class="copy-btn" style="margin-top: 8px;">決定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 決済完了・ライセンスキー表示モーダル -->
+<div id="paymentSuccessModal" class="modal-overlay">
+  <div class="modal-content" style="height: auto; max-width: 500px;">
+    <div class="modal-header">
+      <h4>お支払いありがとうございます</h4>
+      <button class="modal-close-btn" style="display: none;">&times;</button>
+    </div>
+    <div class="modal-body" style="padding: 20px;">
+      <p id="paymentSuccessMessage" style="font-size: 14px; line-height: 1.6; margin-top: 0;">決済情報を確認しています...</p>
+      <!-- 認証済み情報表示エリア -->
+      <div id="authInfoContainer" style="display: none;">
+        <div class="plan-display-box">
+          <strong id="purchasedPlanName" class="info-value"></strong>
+        </div>
+        <div class="payment-info-group">
+          <span class="info-label" style="font-weight: 600;">ライセンスキー:</span>
+          <strong id="licenseKeyDisplay" style="font-family: monospace; letter-spacing: 1px; display: block; margin-top: 4px; background-color: #f8f9fa; padding: 8px; border-radius: 6px; text-align: center;"></strong>
+          <button id="copyLicenseKeyBtn" class="copy-key-btn" style="display: none;"><i class="fa-solid fa-copy"></i>キーをコピー</button>
+        </div>
+        <div class="payment-info-group">
+          <span class="info-label" style="font-weight: 600;">有効期限:</span> <strong id="purchasedExpiresAt" class="info-value"></strong>
+        </div>
+        <!-- デバイス名設定フォーム -->
+        <div id="setDeviceNameContainer" style="display: none; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--light-gray);">
+            <p style="font-size: 14px; line-height: 1.6; margin-top: 0;">
+              最後に、このデバイスを識別するための名前を設定してください。<br>
+              この名前は、後からライセンス情報画面で変更できます。
+            </p>
+            <div id="paymentSuccessDeviceNameMessage" class="message-area error" style="margin-top: 16px; display: none;"></div>
+            <input type="text" id="paymentSuccessDeviceNameInput" placeholder="例: 自宅のPC, 通勤用のスマホ" style="margin-top: 16px;">
+            <button id="submitPaymentSuccessDeviceNameBtn" class="copy-btn" style="margin-top: 8px;">決定して利用を開始する</button>
+        </div>
+      </div>
+      <p class="payment-success-footer-note" style="font-size: 13px; color: #6c757d; margin-top: 16px; display: none;">この画面を閉じると、購入したプランが使えるようになります。</p>
+      <p class="payment-success-footer-note" style="font-size: 12px; color: #6c757d; margin-top: 8px; display: none;">ライセンスキーは、後から「ライセンス情報」画面でいつでもコピーできます。</p>
+    </div>
+  </div>
+</div>
+
 <div id="inputScreen">
   <div class="input-container">
     <div class="input-col">
@@ -321,7 +491,7 @@ footer a:hover { text-decoration: underline; }
         </div>
         <div class="input-group">
           <label for="fare">片道運賃（円）</label>
-          <input type="text" id="fare" placeholder="例: 290" inputmode="numeric">
+          <input type="text" id="fare" placeholder="例: 280" inputmode="numeric">
         </div>
         <div class="input-group">
           <label class="toggle-switch" for="includeOneMonthPass" style="justify-content: space-between; width: 100%; margin-bottom: 8px;">
@@ -329,7 +499,7 @@ footer a:hover { text-decoration: underline; }
             <span><input type="checkbox" id="includeOneMonthPass" checked><span class="slider"></span></span>
           </label>
           <div id="oneMonthPassInput" style="display: block;" class="input-with-unit">
-            <input type="text" id="monthlyPass" placeholder="例: 11920" inputmode="numeric">
+            <input type="text" id="monthlyPass" placeholder="例: 10000" inputmode="numeric">
           </div>
         </div>
         <div class="input-group">
@@ -338,7 +508,7 @@ footer a:hover { text-decoration: underline; }
             <span><input type="checkbox" id="includeThreeMonthPass"><span class="slider"></span></span>
           </label>
           <div id="threeMonthPassInput" style="display: none;" class="input-with-unit">
-            <input type="text" id="threeMonthPass" placeholder="例: 33980" inputmode="numeric">
+            <input type="text" id="threeMonthPass" placeholder="例: 28500" inputmode="numeric">
           </div>
         </div>
         <div class="input-group">
@@ -347,7 +517,7 @@ footer a:hover { text-decoration: underline; }
             <span><input type="checkbox" id="includeSixMonthPass"><span class="slider"></span></span>
           </label>
           <div id="sixMonthPassInput" style="display: none;" class="input-with-unit">
-            <input type="text" id="sixMonthPass" placeholder="例: 64370" inputmode="numeric">
+            <input type="text" id="sixMonthPass" placeholder="例: 54000" inputmode="numeric">
           </div>
         </div>
       </div>
@@ -424,7 +594,18 @@ footer a:hover { text-decoration: underline; }
 
 <!-- ▼▼▼ 広告表示エリア ▼▼▼ -->
 <div id="ad-container-index" style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; margin-top: 24px; text-align: center;">
-  <!-- ここにAmazonアソシエイトなどの広告タグを挿入 -->
+  <!-- Amazonアソシエイト おすすめ商品ウィジェット -->
+  <script type="text/javascript">
+    amzn_assoc_placement = "adunit0";
+    amzn_assoc_tracking_id = "tekeep-22";
+    amzn_assoc_ad_mode = "search";
+    amzn_assoc_ad_type = "smart";
+    amzn_assoc_marketplace = "amazon";
+    amzn_assoc_region = "JP";
+    amzn_assoc_default_search_phrase = "節約"; // 検索キーワード
+    amzn_assoc_search_bar = "false"; // 検索バー非表示
+  </script>
+  <script src="//z-fe.amazon-adsystem.com/widgets/onejs?MarketPlace=JP"></script>
 </div>
 <!-- ▲▲▲ 広告表示エリア ▲▲▲ -->
 
@@ -435,25 +616,77 @@ footer a:hover { text-decoration: underline; }
       <strong style="font-size: 16px;">ご注意</strong>
     </div>
     <div style="font-size: 13px; color: #495057; line-height: 1.6;">
-      TeKeep!（テイキープ！）は、入力された情報に基づき、数学的に最も交通費が安くなる購入パターンを計算するツールです。会社から交通費が支給されている場合など、本シミュレーション結果の利用は、ご所属の組織の規定に従ってください。本ツールの利用は、利用者の自己責任において行ってください。
+      TeKeep!（テイキープ）は、入力された情報に基づき、数学的に最も交通費が安くなる購入パターンを計算するツールです。会社から交通費が支給されている場合など、本シミュレーション結果の利用は、ご所属の組織の規定に従ってください。本ツールの利用は、利用者の自己責任において行ってください。
     </div>
   </div>
 </div>
 
 <footer>
-  <a href="#" id="openContactFooter">お問い合わせ</a>
+  <a href="#" id="openContactFooter">お問い合わせ</a>|
   <a href="#" id="openTokushohoModal">特定商取引法に基づく表記</a>
-  <span>&copy; 2025 TeKeep!</span>
+  <div style="margin-top: 8px;">&copy; 2025 TeKeep!</div>
 </footer>
 
 <!-- SupabaseのJavaScriptクライアントライブラリを読み込む -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script type="module">
-// 【重要】以下のURLとanonキーを、あなたのSupabaseプロジェクトのものに書き換えてください。
-const SUPABASE_URL = 'https://lfnzlvjgiakifuhtdtal.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbnpsdmpnaWFraWZ1aHRkdGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MDk4ODEsImV4cCI6MjA3NDM4NTg4MX0.-qySXufnh3II4xrX5ZZm-Ihd6D3s2u6Sek8ucGJuUuU';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/**
+ * =================================================
+ * 環境設定
+ * =================================================
+ * ホスト名とデバッグキーに基づき、接続先のバックエンドを自動で切り替えます。
+ */
+const environments = {
+  // 本番環境
+  production: {
+    supabaseUrl: 'https://lfnzlvjgiakifuhtdtal.supabase.co',
+    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbnpsdmpnaWFraWZ1aHRkdGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MDk4ODEsImV4cCI6MjA3NDM4NTg4MX0.-qySXufnh3II4xrX5ZZm-Ihd6D3s2u6Sek8ucGJuUuU',
+    stripePublishableKey: 'pk_live_51SDqa53xBJ7PSSdCznMkk32sIyMmAc7k7ynTI87dZyQdsb5pOt8f24wxqObKCXhASx5i6pIBSNvVeuf9BuSFHdJZ00YGa8r4x5',
+    gasUrl: 'https://script.google.com/macros/s/AKfycbzBFSnlmmHSIYVarB28iuylOidj88GstCitZVbWVK4WdIrAm0dsk59em-qDc5--_9fN/exec',
+    gaMeasurementId: 'G-Y15FLWQ7X1',
+  },
+  // 開発環境
+  development: {
+    supabaseUrl: 'https://nubomrlfjstsfdbzahlm.supabase.co',
+    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51Ym9tcmxmanN0c2ZkYnphaGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYzNDgsImV4cCI6MjA3NTY3MjM0OH0.FyB855WKEZQIsq1IqeJw6V8M7zM0xJJZsWtEHFcouAo',
+    stripePublishableKey: 'pk_test_51SCFWkB02upjqTcVOL41k4X0EUiOvgO867uEev6rniYgCXMZLlWIPjpT76CanNop4PQ7CYiuJEYFXsHA8VhJsdtv00NbJYYrWy',
+    gasUrl: 'https://script.google.com/macros/s/AKfycbzz2Qbf7MCyJIDlrOfU12avqXp1_3PGGMgqoH-jORHwOJjruBmQZ1gbXL4c0Oj0XgKm7w/exec',
+    // 開発環境ではGoogle Analyticsを計測しないため、IDは設定しない
+  }
+};
+
+function getEnvironment() {
+  const isProduction = window.location.hostname === 'tekeep.github.io';
+  return isProduction ? 'production' : 'development';
+}
+
+const env = getEnvironment();
+const config = environments[env];
+
+console.log(`実行環境: ${env}`);
+
+// --- グローバル変数の設定 ---
+const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+
+// --- Google Analyticsの動的読み込み ---
+if (config.gaMeasurementId) {
+  const gtagScript = document.createElement('script');
+  gtagScript.async = true;
+  gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${config.gaMeasurementId}`;
+  document.head.appendChild(gtagScript);
+
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', config.gaMeasurementId);
+  console.log(`Google Analyticsを読み込みました (ID: ${config.gaMeasurementId})`);
+}
+
+const STRIPE_PUBLISHABLE_KEY = config.stripePublishableKey;
+const GAS_URL = config.gasUrl;
+// デバッグキーをURLから取得
+const DEBUG_KEY = new URLSearchParams(window.location.search).get('debugKey') || null;
 
 /**
  * 認証状態をサーバーと同期する
@@ -479,6 +712,12 @@ async function syncAuthState(supabase) {
                 localStorage.removeItem('licensePlan');
                 localStorage.removeItem('licenseExpiresAt');
                 location.reload(); // ページをリロードしてUIを未認証状態に更新
+            } else if (response.status === 'valid' && response.deviceName === '__NEEDS_NAMING__') {
+                // 認証は有効だが、デバイス名が未設定の場合
+                console.log('デバイス名が未設定のため、設定を促します。');
+                // デバイス名設定モーダルを表示
+                const deviceNameModal = document.getElementById('deviceNameModal');
+                if (deviceNameModal) deviceNameModal.classList.add('is-visible');
             }
         } catch (e) {
             console.error('認証状態の同期中にエラーが発生しました:', e);
@@ -632,6 +871,17 @@ async function findCacheInSupabase(params, supabase) {
   if (data && data.length > 0) {
     console.log("Supabaseのキャッシュを利用しました。");
     const log = data[0];
+
+    // --- キャッシュ利用時にも、比較プランのラベルを動的に生成する ---
+    let shortestPassOnFirstLabel = '月初購入プラン'; // デフォルト
+    if (params.monthlyPass > 0) {
+      shortestPassOnFirstLabel = '月初1ヶ月定期';
+    } else if (params.threeMonthPass > 0) {
+      shortestPassOnFirstLabel = '月初3ヶ月定期';
+    } else if (params.sixMonthPass > 0) {
+      shortestPassOnFirstLabel = '月初6ヶ月定期';
+    }
+
     return {
       status: "cache",
       message: "過去の計算結果を再利用しました。",
@@ -641,7 +891,7 @@ async function findCacheInSupabase(params, supabase) {
         comparisonCosts: {
           'すべて切符で利用': log.COST_ALL_TICKETS,
           'ベースラインプラン': log.COST_BASELINE,
-          '月初購入プラン': log.COST_MONTHLY_ON_FIRST
+          [shortestPassOnFirstLabel]: log.COST_MONTHLY_ON_FIRST // 動的キーで設定
         },
         holidays: params.holidays.split(',')
       }
@@ -698,16 +948,24 @@ async function saveLogToSupabase(params, result, supabase) {
  * @param {object} params - 計算時のパラメータ
  */
 function redirectToResultPage(response, params) {
-  const resultString = encodeURIComponent(JSON.stringify(response));
-  let { calendarHolidays } = generateHolidayLists();
-  const calendarHolidaysForUrl = calendarHolidays.map(d => d.replace(/-/g, ''));
-  const paramsForUrl = {
-    ...params,
-    startDate: params.startDate.replace(/-/g, ''),
-    calendarHolidays: calendarHolidaysForUrl.join(',')
+  // result.htmlでカレンダー描画に必要な休日リストを取得
+  const { calendarHolidays } = generateHolidayLists();
+
+  // result.htmlで必要なデータをひとつのオブジェクトにまとめる
+  const dataForNextPage = {
+    resultData: response,
+    paramsData: {
+      ...params,
+      // 休日リストはURLではなく、ここでparamsに含めて渡す
+      calendarHolidays: calendarHolidays.join(','),
+    }
   };
-  const paramsString = encodeURIComponent(JSON.stringify(paramsForUrl));
-  window.location.href = `result.html?result=${resultString}&params=${paramsString}`;
+
+  // localStorageに一時的なデータとして保存
+  localStorage.setItem('simulationResultData', JSON.stringify(dataForNextPage));
+
+  // パラメータなしで結果ページへ遷移
+  window.location.href = 'result.html';
 }
 
 document.getElementById('calculateBtn').addEventListener('click', async () => {
@@ -735,7 +993,7 @@ document.getElementById('calculateBtn').addEventListener('click', async () => {
     redirectToResultPage(cachedResult, params);
   } else {
     // --- 2b. キャッシュがなければ、GASに計算をリクエスト ---
-    const gasUrl = 'https://script.google.com/macros/s/AKfycbzBFSnlmmHSIYVarB28iuylOidj88GstCitZVbWVK4WdIrAm0dsk59em-qDc5--_9fN/exec';
+    const gasUrl = GAS_URL; // 環境設定からURLを取得
     const queryString = Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&');
     
     // JSONPリクエスト
@@ -1150,6 +1408,11 @@ function initializeApp() {
     const licensePlan = localStorage.getItem('licensePlan');
     if (licenseKey && licensePlan) {
         document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-user-check"></i>ライセンス情報';
+        // 有料プランの場合は広告を非表示にする
+        const adContainer = document.getElementById('ad-container-index');
+        if (adContainer) {
+            adContainer.style.display = 'none';
+        }
     }
 
     createDaySettingCards(); // 曜日設定カードを生成
@@ -1171,8 +1434,8 @@ function initializeApp() {
     let defaultDuration = '12';
 
     if (!licensePlan) { // フリープラン
-      maxDuration = 3;
-      defaultDuration = '3';
+      maxDuration = 4;
+      defaultDuration = '4';
       if (upgradeNotice) upgradeNotice.style.display = 'block';
     } else if (licensePlan === 'pro') { // プロプラン
       maxDuration = 24;
@@ -1202,6 +1465,27 @@ function initializeApp() {
     }
     durationSelect.value = savedDuration || defaultDuration; // 保存された値がなければデフォルト値を使用
 
+    // --- プランに応じた定期券入力欄の表示制御 ---
+    // 各定期券のチェックボックスと入力欄の要素を取得
+    const threeMonthCheckbox = document.getElementById('includeThreeMonthPass');
+    const sixMonthCheckbox = document.getElementById('includeSixMonthPass');
+    const threeMonthPassGroup = document.getElementById('threeMonthPassInput').closest('.input-group');
+    const sixMonthPassGroup = document.getElementById('sixMonthPassInput').closest('.input-group');
+
+    if (!licensePlan) {
+        if (threeMonthPassGroup) threeMonthPassGroup.style.display = 'none';
+        if (threeMonthCheckbox) threeMonthCheckbox.checked = false;
+        localStorage.setItem('includeThreeMonthPass', 'false');
+
+        if (sixMonthPassGroup) sixMonthPassGroup.style.display = 'none';
+        if (sixMonthCheckbox) sixMonthCheckbox.checked = false;
+        localStorage.setItem('includeSixMonthPass', 'false');
+    } else {
+        // 有料プランの場合は表示を元に戻す（プラン変更時のため）
+        if (threeMonthPassGroup) threeMonthPassGroup.style.display = 'block';
+        if (sixMonthPassGroup) sixMonthPassGroup.style.display = 'block';
+    }
+
     // 休日設定に関連するすべての入力要素にイベントリスナーを設定
     const holidaySettingElements = [
         ...document.querySelectorAll('.day-settings-list select'),
@@ -1226,6 +1510,50 @@ function initializeApp() {
     }
 }
 
+/**
+ * プランの内部名から表示名を取得する
+ * @param {string} planName - プランの内部名 (e.g., 'standard')
+ * @returns {string} 表示用のプラン名 (e.g., 'スタンダード プラン')
+ */
+function getPlanDisplayName(planName) {
+    const names = { 'free': 'フリー プラン', 'standard': 'スタンダード プラン', 'pro': 'プロ プラン' };
+    return names[planName] || `${planName} プラン`;
+}
+
+/**
+ * 有効期限の日付文字列をフォーマットする
+ * @param {string} expiresAtStr - ISO 8601形式の日付文字列
+ * @returns {string} フォーマットされた日付文字列 (例: 2026年10月7日 23:59 まで)
+ */
+function formatExpiresAt(expiresAtStr) {
+    if (!expiresAtStr || expiresAtStr === 'null') return 'N/A';
+    // DBには「有効期限の翌日0時」が保存されているため、表示上は1日引く
+    const expiresDate = new Date(expiresAtStr);
+    expiresDate.setDate(expiresDate.getDate() - 1);
+
+    return `${expiresDate.getFullYear()}年${expiresDate.getMonth() + 1}月${expiresDate.getDate()}日 23:59 まで`;
+}
+
+/**
+ * ライセンスキーを伏せ字にする
+ * @param {string} key - ライセンスキー
+ * @returns {string} 伏せ字化されたライセンスキー
+ */
+function maskLicenseKey(key) {
+    if (!key) return 'N/A';
+    const parts = key.split('-');
+    if (parts.length > 1) { // ハイフン区切りの場合 (例: ABCD-EFGH-IJKL-MNOP)
+        // 先頭と末尾のブロックを表示し、中間を伏せ字にする
+        return parts.map((part, index) => {
+            if (index === 0 || index === parts.length - 1) {
+                return part;
+            }
+            return '*'.repeat(part.length);
+        }).join('-');
+    } else { // ハイフンがない場合
+        return key.length > 8 ? key.slice(0, 4) + '*'.repeat(key.length - 8) + key.slice(-4) : key;
+    }
+}
 /**
  * =================================================
  * 金額入力欄の入力制御
@@ -1262,6 +1590,7 @@ amountInputs.forEach(id => {
  * =================================================
  */
 let initialLicensePlan = null; // ページ読み込み時のプランを記憶するグローバル変数
+let stripeCheckout = null; // Stripeの埋め込み決済オブジェクトを保持するグローバル変数
 
 function setupModal(modalId, openBtnId) {
   const modal = document.getElementById(modalId);
@@ -1325,6 +1654,19 @@ function setupModal(modalId, openBtnId) {
         modalBody.innerHTML = '<iframe id="contactIframe" src="about:blank" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>';
     }
 
+    // 決済モーダルを閉じた際の特別な後処理
+    if (modalId === 'paymentModal') {
+      if (stripeCheckout) {
+        stripeCheckout.destroy();
+        stripeCheckout = null;
+      }
+      // pricing.htmlにモーダルが閉じたことを通知し、ボタンの状態をリセットさせる
+      const pricingIframe = document.getElementById('pricingIframe')?.contentWindow;
+      if (pricingIframe) {
+        pricingIframe.postMessage({ type: 'checkoutSessionClosed' }, '*');
+      }
+    }
+
     if (modalId === 'licenseModal' && initialLicensePlan !== currentLicensePlan) {
         location.reload();
     }
@@ -1344,6 +1686,144 @@ function setupModal(modalId, openBtnId) {
  * =================================================
  */
 document.addEventListener('DOMContentLoaded', async () => {
+    // --- 決済完了後のリダイレクト処理 ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    if (urlParams.get('payment') === 'success' && sessionId) {
+        const modal = document.getElementById('paymentSuccessModal');
+        const copyBtn = document.getElementById('copyLicenseKeyBtn');
+        const authInfoContainer = document.getElementById('authInfoContainer');
+        const display = document.getElementById('licenseKeyDisplay');
+        const planNameEl = document.getElementById('purchasedPlanName');
+        const expiresAtEl = document.getElementById('purchasedExpiresAt');
+        const messageEl = document.getElementById('paymentSuccessMessage');
+        modal.classList.add('is-visible');
+        const setDeviceNameContainer = document.getElementById('setDeviceNameContainer');
+
+        // URLから決済パラメータを削除
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        const fetchLicenseKey = async (retries = 5, delay = 2000) => {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const { data, error } = await supabase.functions.invoke('retrieve-license-key', {
+                        body: {
+                            sessionId,
+                            debugKey: env === 'development' ? DEBUG_KEY : null
+                        }
+                    });
+                    if (error) throw error;
+
+                    if (data.status === 'success') {
+                        // 1. 認証情報をlocalStorageに保存
+                        localStorage.setItem('licenseKey', data.licenseKey);
+                        localStorage.setItem('licensePlan', data.plan);
+                        localStorage.setItem('licenseExpiresAt', data.expiresAt);
+                        localStorage.setItem('justUpgraded', 'true'); // プラン変更フラグ
+
+                        // 2. UIを更新
+                        messageEl.innerHTML = '<strong>認証が完了しました！</strong><br>ご購入いただいたプランが有効になりました。';
+                        authInfoContainer.style.display = 'block';
+                        planNameEl.textContent = getPlanDisplayName(data.plan);
+                        expiresAtEl.textContent = formatExpiresAt(data.expiresAt);
+                        display.textContent = maskLicenseKey(data.licenseKey); // 伏せ字で表示
+
+                        // デバイス名設定フォームを表示
+                        setDeviceNameContainer.style.display = 'block';
+
+                        copyBtn.disabled = false;
+                        copyBtn.addEventListener('click', () => {
+                            navigator.clipboard.writeText(data.licenseKey).then(() => {
+                                const originalText = copyBtn.innerHTML;
+                                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>コピー完了';
+                                setTimeout(() => {
+                                    copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i>キーをコピー';
+                                }, 2000);
+                            });
+                        });
+                        copyBtn.style.display = 'inline-block'; // ボタンを表示
+
+                        return; // 成功したらループを抜ける
+                    }
+                } catch (e) {
+                    console.error(`Attempt ${i + 1} failed:`, e);
+                }
+                messageEl.innerHTML = `認証情報を確認中です... (試行 ${i + 1}/${retries})<br>この処理には少し時間がかかる場合があります。`;
+                if (i < retries - 1) await new Promise(resolve => setTimeout(resolve, delay));
+            }
+            // すべてのリトライが失敗した場合
+            messageEl.innerHTML = '<strong>認証情報の取得に失敗しました。</strong><br>お手数ですが、メニューの「ライセンス認証」から、再度認証をお試しください。';
+            // フッターノートを表示
+            document.querySelectorAll('.payment-success-footer-note').forEach(el => {
+                el.style.display = 'block';
+            });
+        };
+
+        fetchLicenseKey();
+
+        // 決済完了モーダル内のデバイス名設定ボタンの処理
+        document.getElementById('submitPaymentSuccessDeviceNameBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('submitPaymentSuccessDeviceNameBtn');
+            const newName = document.getElementById('paymentSuccessDeviceNameInput').value.trim();
+            const messageEl = document.getElementById('paymentSuccessDeviceNameMessage');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 決定中...';
+            await handleDeviceNameSubmission(newName, messageEl, () => location.reload(), btn, '決定して利用を開始する');
+        });
+
+        // モーダルを閉じたらページをリロードしてプランを反映
+        modal.querySelector('.modal-close-btn').addEventListener('click', () => location.reload());
+    }
+
+    // 再来訪時のデバイス名設定モーダルの処理
+    document.getElementById('submitDeviceNameBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('submitDeviceNameBtn');
+        const newName = document.getElementById('deviceNameInput').value.trim();
+        const messageEl = document.getElementById('deviceNameMessage');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 決定中...';
+        await handleDeviceNameSubmission(newName, messageEl, () => location.reload(), btn, '決定');
+    });
+
+    // デバイス名設定の共通処理
+    async function handleDeviceNameSubmission(newName, messageEl, onSuccessCallback, buttonElement, originalText) {
+        if (!newName) {
+            messageEl.textContent = 'デバイス名を入力してください。';
+            messageEl.style.display = 'block';
+            if (buttonElement) {
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalText;
+            }
+            return;
+        }
+        messageEl.style.display = 'none';
+        try {
+            const { data, error } = await supabase.functions.invoke('update-device-name', {
+                body: { appName: "TeKeep!", licenseKey: localStorage.getItem('licenseKey'), deviceId: localStorage.getItem('deviceId'), newDeviceName: newName }
+            });
+            if (error) throw error;
+            if (data.status === 'success') {
+                // 成功時の処理をコールバックで実行
+                if (onSuccessCallback) onSuccessCallback();
+            } else {
+                messageEl.textContent = data.message || 'エラーが発生しました。';
+                messageEl.style.display = 'block';
+            }
+        } catch (e) {
+            messageEl.textContent = 'サーバーとの通信に失敗しました。';
+            messageEl.style.display = 'block';
+        } finally {
+            // 成功時はリロードされるので、失敗した場合のみボタンの状態を戻す
+            if (buttonElement && !buttonElement.disabled) {
+                // この条件は、成功コールバックが呼ばれなかった場合にのみ真になる
+            } else if (buttonElement) {
+                // 成功しなかった場合（エラー表示された場合）
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalText;
+            }
+        }
+    }
+
     // 1. UIの初期化
     initializeApp();
 
@@ -1356,6 +1836,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupModal('licenseModal', 'openLicenseForm');
     setupModal('pricingModal', 'openPricingModal');
     setupModal('tokushohoModal', 'openTokushohoModal');
+    setupModal('paymentModal', null); // 決済モーダルはボタンでは開かない
 
     // 3. 認証状態の同期
     await syncAuthState(supabase);
@@ -1378,13 +1859,17 @@ window.addEventListener('message', async (event) => {
         localStorage.setItem('licensePlan', newPlan);
         localStorage.setItem('licenseExpiresAt', event.data.expiresAt);
         document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-user-check"></i>ライセンス情報';
-        if (oldPlan !== newPlan) {
-            // プランが変更された場合、アップグレード直後の期間更新のためにフラグを立てる
+        if (oldPlan !== newPlan) { // プランが変更された場合
             localStorage.setItem('justUpgraded', 'true');
         }
         // Google Analytics イベントトラッキング
         if (typeof gtag === 'function') {
             gtag('event', 'auth_success', { 'plan': newPlan });
+        }
+    }
+    if (event.data && event.data.type === 'startPayment') {
+        if (typeof gtag === 'function') {
+            gtag('event', 'start_payment', { 'plan': event.data.plan });
         }
     }
     if (event.data && event.data.type === 'authRevoke') {
@@ -1394,7 +1879,6 @@ window.addEventListener('message', async (event) => {
         localStorage.removeItem('licenseExpiresAt');
         document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-key"></i>ライセンス認証';
     }
-    // [修正] if/else if の連鎖を解消し、各メッセージを独立して判定する
     if (event.data === 'openPricingModalFromLicense') {
         if (window.open_pricingModal) window.open_pricingModal();
     }
@@ -1416,20 +1900,60 @@ window.addEventListener('message', async (event) => {
         // 設計意図: deviceIdは親ウィンドウ(index.html)のlocalStorageで一元管理する
         localStorage.setItem('deviceId', event.data.deviceId);
     }
-    if (event.data && event.data.type === 'startPayment') {
-        // Google Analytics イベントトラッキング
-        if (typeof gtag === 'function') {
-            gtag('event', 'start_payment', { 'plan': event.data.plan });
+    if (event.data && event.data.type === 'createCheckoutSession') {
+        // pricing.htmlから決済セッション作成要求
+        const { plan } = event.data;
+        const deviceId = localStorage.getItem('deviceId');
+        if (!deviceId) {
+            alert('デバイスIDが取得できませんでした。ページをリロードしてください。');
+            return;
+        }
+        try {
+            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                body: {
+                    plan,
+                    deviceId,
+                    // 開発環境の場合のみデバッグキーを送信
+                    debugKey: env === 'development' ? DEBUG_KEY : null
+                }
+            });
+            if (error) throw error;
+
+            // 決済モーダルを開き、Stripe Checkoutを埋め込む
+            const paymentModal = document.getElementById('paymentModal');
+            paymentModal.classList.add('is-visible');
+
+            // [修正] Stripeの初期化には、SupabaseのキーではなくStripeの公開キーを使用する
+            const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+            stripeCheckout = await stripe.initEmbeddedCheckout({
+              clientSecret: data.clientSecret,
+            });
+            stripeCheckout.mount('#checkout');
+
+        } catch (e) {
+            console.error('Stripe Checkoutセッションの作成に失敗しました:', e);
+            // Edge Functionから返された具体的なエラーメッセージを優先的に表示する (e.context.json()はPromiseを返す)
+            const errorData = await e.context?.json();
+            const detailMessage = errorData?.message || e.message;
+            alert('決済ページの準備に失敗しました。時間をおいて再度お試しください。\n\n詳細: ' + detailMessage);
+            // pricing.htmlにエラーを通知してボタンの状態を元に戻させる
+            const pricingIframe = document.getElementById('pricingIframe').contentWindow;
+            if (pricingIframe) {
+                pricingIframe.postMessage({ type: 'checkoutSessionFailed' }, '*');
+            }
         }
     }
     if (event.data && event.data.type === 'openContactModal') {
         // tokushoho.htmlからお問い合わせモーダルを開く要求
         if (window.open_contactModal) window.open_contactModal();
     }
-    if (event.data && event.data.type === 'invokeFunction') {
+    if (event.data && event.data.type && event.data.type.startsWith('invoke:')) {
         // iframe (license.html) からのEdge Function実行リクエストを処理
-        const { functionName, body } = event.data;
+        const functionName = event.data.type.split(':')[1];
+        const { body } = event.data;
         if (!functionName || !body) return;
+
+        const responseType = `response:${functionName}`;
 
         try {
             const { data: response, error } = await supabase.functions.invoke(functionName, { body });
@@ -1437,15 +1961,14 @@ window.addEventListener('message', async (event) => {
 
             // 実行結果をiframeに返す
             const sourceIframe = document.getElementById('licenseIframe').contentWindow;
-            if (sourceIframe) {
-                sourceIframe.postMessage({ type: 'functionResponse', functionName, response }, '*');
-            }
+            if (sourceIframe) sourceIframe.postMessage({ type: responseType, response }, '*');
+
         } catch (e) {
             console.error(`${functionName} の呼び出しに失敗しました:`, e);
             // エラーが発生した場合も、その旨をiframeに通知する
             const sourceIframe = document.getElementById('licenseIframe').contentWindow;
             if (sourceIframe) {
-                sourceIframe.postMessage({ type: 'functionResponse', functionName, response: { status: 'error', message: e.message } }, '*');
+                sourceIframe.postMessage({ type: responseType, response: { status: 'error', message: e.message } }, '*');
             }
         }
     }
