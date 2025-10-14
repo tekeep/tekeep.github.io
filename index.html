@@ -15,6 +15,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <!-- Stripe.jsを読み込む -->
 <script src="https://js.stripe.com/v3/"></script>
+<!-- QRコード生成ライブラリを読み込む -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <!-- Favicon Settings -->
 <link rel="icon" href="images/favicon.ico" type="image/x-icon">
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png" sizes="180x180">
@@ -321,6 +323,35 @@ button { border:none; border-radius:8px; font-weight:600; cursor:pointer; transi
     display: block; /* 画面幅が狭い時だけ改行 */
   }
 }
+
+/* --- QRコードモーダル --- */
+.qr-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none; /* 初期状態では非表示 */
+  align-items: center; justify-content: center;
+  z-index: 2100; /* 他のモーダルより手前に表示 */
+}
+.qr-modal-content {
+  background-color: white;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+.qr-modal-content .modal-body {
+  padding: 20px;
+}
+#qrcode { display: flex; justify-content: center; align-items: center; }
+.qr-modal-content p { font-size: 13px; color: #6c757d; margin-top: 15px; margin-bottom: 0; }
+.qr-modal-overlay.is-visible {
+  display: flex;
+}
+</style>
+<style>
+/* --- シェアボタン --- */
+.share-button-container { position: fixed; top: 10px; right: 65px; z-index: 1001; }
+.share-btn { width: 40px; height: 40px; background-color: var(--text-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: none; cursor: pointer; }
+.share-btn:hover { background-color: #0c2a43; } /* --text-colorの少し暗い色 */
 </style>
 <style>
 /* --- フッター --- */
@@ -336,6 +367,25 @@ footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
+<div class="share-button-container">
+  <button id="shareBtn" class="share-btn" title="このアプリをシェアする">
+    <i class="fa-solid fa-share-nodes"></i>
+  </button>
+</div>
+<!-- QRコード表示用モーダル -->
+<div id="qrModal" class="qr-modal-overlay" style="z-index: 3000;">
+  <div class="qr-modal-content">
+    <div class="modal-header">
+      <h4>このページをシェア</h4>
+      <button class="modal-close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="qrcode"></div>
+      <p>URLはクリップボードにコピーされました。<br>
+        QRコードをスキャンしてスマホで開くこともできます。</p>
+    </div>
+  </div>
+</div>
 <div class="hamburger-menu">
   <div class="menu-btn">
     <span></span>
@@ -1590,6 +1640,7 @@ amountInputs.forEach(id => {
  * =================================================
  */
 let initialLicensePlan = null; // ページ読み込み時のプランを記憶するグローバル変数
+let stripe = null; // Stripe V3 オブジェクトを保持
 let stripeCheckout = null; // Stripeの埋め込み決済オブジェクトを保持するグローバル変数
 
 function setupModal(modalId, openBtnId) {
@@ -1840,6 +1891,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3. 認証状態の同期
     await syncAuthState(supabase);
+
+    // 4. シェアボタンのイベントリスナー
+    const shareBtn = document.getElementById('shareBtn');
+    const qrModal = document.getElementById('qrModal');
+    const qrcodeContainer = document.getElementById('qrcode');
+
+    if (shareBtn && qrModal && qrcodeContainer) {
+      shareBtn.addEventListener('click', async () => {
+        const shareData = {
+          title: document.title,
+          text: 'TeKeep!は、通勤・通学費を節約するための無料シミュレーター。あなたの休日設定に合わせて、最も安くなる購入プランを簡単に見つけられます。',
+          url: window.location.href
+        };
+
+        if (navigator.share) {
+          // Web Share APIが使える場合 (スマホなど)
+          try {
+            await navigator.share(shareData);
+          } catch (err) {
+            console.error('共有に失敗しました:', err);
+          }
+        } else {
+          // Web Share APIが使えない場合 (PCなど)
+          // 1. URLをコピー
+          navigator.clipboard.writeText(shareData.url).then(() => {
+            const originalIcon = shareBtn.innerHTML;
+            shareBtn.innerHTML = `<i class="fa-solid fa-check"></i>`;
+            setTimeout(() => { shareBtn.innerHTML = originalIcon; }, 2000);
+          });
+          // 2. QRコードを生成してモーダル表示
+          qrcodeContainer.innerHTML = ''; // 既存のQRコードをクリア
+          new QRCode(qrcodeContainer, { text: shareData.url, width: 180, height: 180 });
+          qrModal.classList.add('is-visible');
+        }
+      });
+
+      // 閉じるボタンで閉じる
+      const closeBtn = qrModal.querySelector('.modal-close-btn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => qrModal.classList.remove('is-visible'));
+      }
+
+      // モーダル外クリックで閉じる
+      qrModal.addEventListener('click', (e) => {
+        if (e.target === qrModal) {
+          qrModal.classList.remove('is-visible');
+        }
+      });
+    }
 });
 
 /**
