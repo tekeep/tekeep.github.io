@@ -1,0 +1,66 @@
+body {
+    background: white;
+    margin: 0;
+}
+.pricing-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 20px; /* bodyからpaddingをこちらに移動 */
+}
+.pricing-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    width: 210px;
+    text-align: center;
+    border: 1px solid var(--light-gray);
+    display: flex;
+    flex-direction: column;
+}
+.pricing-card h3 {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+.pricing-card .price {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--accent-color);
+}
+.pricing-card .price span {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+.pricing-card .features {
+    text-align: left;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    flex-grow: 1; /* この要素が可変の高さを吸収するようにする */
+}
+.pricing-card .features p {
+    margin: 0 0 8px 0; /* 下マージンを追加して行間を調整 */
+}
+.pricing-card .description {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 0px;
+    min-height: 40px;
+}
+.pricing-card .button.upgrade {
+    background-color: var(--primary-color);
+}
+.pricing-card .button.current {
+    background-color: #6c757d;
+    cursor: default;
+}
+.pricing-card .button.disabled {
+    background-color: #e9ecef;
+    color: #adb5bd !important;
+    cursor: not-allowed;
+}

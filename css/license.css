@@ -1,0 +1,114 @@
+body {
+    background: white;
+    margin: 0;
+    padding: 20px;
+}
+input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    font-size: 16px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+}
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+}
+p {
+    margin: 0;
+}
+#device-management {
+    display: none;
+}
+.device-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+}
+.device-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+.device-item .device-id {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.device-item .current-device-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-left: 8px;
+}
+.device-item button {
+    width: auto;
+    padding: 4px 10px;
+    font-size: 12px;
+    background-color: #f97316;
+}
+/* デバイスリスト内のボタンの幅を自動調整し、レイアウト崩れを防ぐ */
+.device-item .save-device-name-btn,
+.device-item .edit-device-btn {
+    width: 80px;
+    padding: 8px 0; /* 上下のpaddingを調整して高さを入力欄と合わせる */
+    line-height: 1.5; /* テキストボックスと行の高さを合わせる */
+    font-size: 14px;
+    white-space: nowrap; /* ボタン内のテキストが改行されるのを防ぐ */
+    flex-shrink: 0; /* flexコンテナ内でボタンが縮むのを防ぐ */
+}
+.device-item button:hover {
+    opacity: 0.85;
+}
+.device-item .edit-device-btn {
+    background-color: #f97316;
+}
+.device-item .edit-device-btn:hover {
+    background-color: #f97316; /* ホバー時も色を維持し、opacityで変化させる */
+}
+.copy-key-btn {
+    width: auto !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+    background-color: #6c757d !important;
+    margin-top: 8px; /* 上マージンを追加 */
+}
+.copy-key-btn:hover {
+    background-color: #5a6268 !important;
+}
+.copy-key-btn .fa-solid {
+    margin-right: 4px;
+}
+/* デバイス名編集UI */
+.device-name-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.device-name-text {
+    padding: 9px 0; /* 編集時のテキストボックスと高さを合わせる */
+    font-size: 14px;
+}
+.device-name-edit-form {
+    display: none; /* 初期状態では非表示 */
+    flex-grow: 1;
+    align-items: center; /* フォーム内の要素を垂直中央揃えにする */
+    gap: 4px;
+}
+/* 編集フォーム内のテキスト入力欄が可変幅で伸びるように設定 */
+.device-name-edit-form .device-name-input {
+    flex-grow: 1;
+    padding: 8px 12px; /* 高さをボタンと合わせる */
+    font-size: 14px;
+    margin-bottom: 0; /* 汎用スタイルを上書きして、フォーム内のマージンをなくす */
+    min-width: 0; /* flexアイテムが縮小できるようにするおまじない */
+}

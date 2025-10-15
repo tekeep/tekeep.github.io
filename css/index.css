@@ -1,0 +1,289 @@
+body { max-width: 980px; margin: 20px auto 0; background: var(--background-color); padding: 0 15px 80px; } /* 下部の余白をpadding-bottomで確保 */
+h2 { margin-bottom: 8px; font-size: 2.25rem; font-weight: 700; color: var(--primary-color); text-align: center; }
+label { font-size: 14px; margin-bottom: 8px; display: inline-block; font-weight: 600; color: var(--primary-color); }
+input[type="text"], input[type="number"], input[type="date"], select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); font-size:16px; margin-bottom:6px; box-sizing:border-box; transition: border-color 0.2s, box-shadow 0.2s; background-color: white; }
+/* type="number"で表示されるスピナー（上下矢印）を非表示にする */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox用 */
+  appearance: textfield;
+}
+input:focus, select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 196, 204, 0.25); outline: none; }
+#calculateBtn { padding: 12px 0; font-size: 16px; width: 100%; display: block; border-radius: 8px; }
+#calculateBtn { background: var(--primary-color); color: white; box-shadow: 0 4px 12px rgba(0, 196, 204, 0.3); transform: translateY(0); }
+#calculateBtn:hover { background: var(--primary-hover-color); box-shadow: 0 2px 8px rgba(0, 196, 204, 0.4); transform: translateY(-1px); }
+#calculateBtn:disabled { background: #adb5bd; cursor: not-allowed; }
+#bottomBtn { position:fixed; bottom:10px; left: 0; right: 0; z-index: 10; }
+.input-container { display: flex; flex-direction: column; gap: 20px; }
+.input-section {
+  --card-padding: 24px; /* カードのパディングを変数として定義 */
+  background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: var(--card-padding) var(--card-padding) 16px;
+  overflow: hidden; /* はみ出した子要素をクリップして角丸を維持する */
+}
+.section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+.section-header svg { width: 20px; height: 20px; fill: var(--primary-color); }
+.section-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+.input-group { margin-bottom: 5px; }
+.input-section .input-group:not(:first-child) { border-top: 1px solid var(--light-gray); padding-top: 12px; margin-top: 12px; } 
+.input-section .input-group:last-child { margin-bottom: 0; } 
+/* --- トグルスイッチのスタイルを再設計 --- */
+.toggle-switch {
+  --switch-width: 40px;
+  --switch-height: 22px;
+  --thumb-size: 18px;
+  --switch-padding: 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.toggle-switch input[type="checkbox"] { display: none; } /* チェックボックス自体は非表示 */
+.toggle-switch .slider { display: block; width: var(--switch-width); height: var(--switch-height); background-color: #ccc; border-radius: var(--switch-height); position: relative; transition: background-color 0.2s; }
+.toggle-switch .slider::before { content: ''; position: absolute; top: var(--switch-padding); left: var(--switch-padding); width: var(--thumb-size); height: var(--thumb-size); background-color: white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: transform 0.2s; }
+.toggle-switch input:checked + .slider { background-color: var(--primary-color); }
+.toggle-switch input:checked + .slider::before { transform: translateX(calc(var(--switch-width) - var(--thumb-size) - (var(--switch-padding) * 2))); }
+.toggle-label { color: var(--primary-color); font-weight: 600; font-size: 14px; }
+.input-with-unit { display: flex; align-items: center; gap: 8px; }
+.input-with-unit span { font-weight: 600; color: var(--text-color); }
+/* --- ここまで --- */ 
+/* --- 休日設定UIのスタイル --- */
+.day-settings-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.day-setting-row { display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; padding: 4px 12px; box-sizing: border-box; }
+.day-setting-row .day-label { font-weight: 600; font-size: 14px; color: var(--primary-color); }
+.day-setting-row select { width: auto; min-width: 120px; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 14px; position: relative; top: 3px; }
+.day-setting-row > div { display: flex; align-items: center; gap: 8px; } /* ラベルとセレクトボックスを垂直中央揃えにする */
+.custom-holiday-input { display: flex; gap: 8px; }
+.custom-holiday-input input { flex-grow: 1; }
+.custom-holiday-input button { padding: 0 12px; background-color: var(--light-gray); color: var(--text-color); }
+.holiday-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; padding-left: 0; }
+.holiday-tag { list-style-type: none; background-color: var(--light-gray); padding: 4px 8px; border-radius: 6px; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.holiday-tag.is-national-holiday { background-color: #fff0f0; border: 1px solid #fecaca; }
+.holiday-tag button { background: none; border: none; font-size: 16px; cursor: pointer; color: #6c757d; padding: 0; line-height: 1; }
+.holiday-tag button:hover { color: var(--text-color); }
+/* --- ここまで --- */
+/* --- 設定用カレンダーのスタイル --- */
+.setting-calendar-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 12px; }
+.week-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-weight: 600; text-align: center; margin-bottom: 4px; font-size: 12px; color: #495057; }
+.setting-month-container { min-width: 280px; }
+.setting-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.setting-calendar-cell { background-color: #fff; border: 1px solid #eee; border-radius: 4px; padding: 4px; aspect-ratio: 1 / 1; font-size: 12px; text-align: center; cursor: pointer; transition: background-color 0.2s, transform 0.1s; display: flex; align-items: center; justify-content: center; }
+.setting-calendar-cell:hover { transform: scale(1.05); }
+.setting-calendar-cell.is-holiday { background-color: #fff0f0; }
+.setting-calendar-cell.is-other-month { background-color: var(--background-color); color: #ccc; cursor: default; }
+.setting-calendar-cell.is-custom-holiday { background-color: #fff5e6; border: 1px solid #ffe8cc; } /* カスタム休日: 薄いオレンジ */
+.setting-calendar-cell.is-custom-workday { background-color: #e6f9f0; border: 1px solid #cce9d4; } /* カスタム勤務日: 薄い緑 */
+.upgrade-notice-footer a {
+  font-weight: 600;
+  text-decoration: underline;
+  color: var(--primary-color); /* リンク色をプライマリカラーに設定 */
+}
+.upgrade-notice-footer a:hover {
+  color: var(--primary-hover-color);
+}
+.upgrade-notice-footer {
+  display: none; /* JSで表示を制御 */
+  font-size: 13px;
+  color: #495057;
+  margin: 16px calc(-1 * var(--card-padding)) calc(-1 * var(--card-padding) + 8px); /* カードのパディングを相殺 */
+  padding: 12px var(--card-padding);
+  background-color: #f8f9fa;
+  border-top: 1px solid var(--light-gray);
+}
+@media (min-width: 768px) {
+  #holidayToggleLabel {
+    max-width: calc(50% - 10px - var(--card-padding));
+  }
+  .input-container { flex-direction: row; align-items: flex-start; }
+  .input-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+  .input-col:first-child { justify-content: space-between; }
+}
+.logo-img { max-width: 180px; height: auto; margin-bottom: 8px; }
+.header-catchphrase { font-size: 1rem; color: #495057; margin-top: 0; }
+.notice-box {
+  display: flex;
+  gap: 12px;
+  background-color: #fff9f2; /* accent-colorの薄い色 */
+  border: 1px solid #fed7aa;
+  border-left: 5px solid var(--accent-color);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 24px;
+}
+.notice-box .notice-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--accent-color);
+}
+
+/* --- ハンバーガーメニュー --- */
+.hamburger-menu { position: fixed; top: 10px; right: 15px; z-index: 1000; }
+.menu-btn {
+  width: 40px; height: 40px; background-color: var(--primary-color); border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.menu-btn span { display: block; width: 20px; height: 2px; background-color: white; border-radius: 1px; transition: all 0.3s; }
+.menu-btn.is-active span:nth-of-type(1) { transform: translateY(7px) rotate(45deg); }
+.menu-btn.is-active span:nth-of-type(2) { opacity: 0; }
+.menu-btn.is-active span:nth-of-type(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.nav-menu {
+  position: fixed; top: 0; right: 0; width: 250px; height: 100%;
+  background-color: white; box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 999;
+  padding-top: 60px;
+}
+.nav-menu.is-active { transform: translateX(0); }
+.nav-menu ul { list-style: none; padding: 0; margin: 0; }
+.nav-menu li a {
+  display: block; padding: 15px 20px; color: var(--text-color); text-decoration: none;
+  font-weight: 600; border-bottom: 1px solid var(--light-gray);
+  transition: background-color 0.2s;
+}
+.nav-menu li a:hover { background-color: var(--light-gray); }
+.nav-menu li a i {
+  margin-right: 10px;
+  color: var(--primary-color);
+  position: relative; top: 1px; /* アイコンを1px下に移動 */
+}
+#openPricingModal i {
+  top: 0; /* 料金プランのアイコンだけ位置をリセット */
+}
+
+/* --- 決済完了モーダル --- */
+.license-key-display {
+  background-color: var(--light-gray);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--text-color);
+  text-align: center;
+  margin: 16px 0;
+  word-break: break-all;
+}
+.payment-modal-body {
+  padding: 20px;
+  min-height: 400px; /* Stripe Elementsが描画されるまでの最低限の高さを確保 */
+}
+/* 決済モーダルのヘッダーを固定するためのスタイル */
+#paymentModal .modal-content {
+  height: 80%;
+  display: flex;
+  flex-direction: column;
+}
+.payment-modal-body {
+  flex-grow: 1; /* ヘッダー以外の残りの高さを埋める */
+  overflow-y: auto; /* コンテンツがはみ出したらスクロール */
+}
+/* Stripe Checkoutがマウントされるコンテナ */
+#checkout {
+  width: 100%;
+}
+/* Stripeが生成するiframeのスタイルを調整 */
+#checkout iframe {
+  width: 100% !important;
+  min-height: 400px;
+}
+.copy-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.copy-btn:hover {
+  background-color: var(--primary-hover-color);
+}
+.copy-btn .fa-solid {
+  margin-right: 8px;
+}
+/* license.htmlから移植: コピーボタンのスタイル */
+.copy-key-btn {
+    width: auto !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+    background-color: #6c757d !important;
+    color: white !important;
+    margin-top: 8px; /* 上マージンを追加 */
+}
+.copy-key-btn:hover {
+    background-color: #5a6268 !important;
+}
+
+/* 決済完了モーダルの情報表示スタイル */
+.payment-info-group {
+  font-size: 14px;
+  color: #495057;
+  margin-bottom: 16px;
+}
+.payment-info-group .info-label {
+  font-weight: 600;
+}
+.payment-info-group .info-value {
+  font-weight: bold;
+}
+.plan-display-box {
+  background: var(--primary-color);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.plan-display-box .info-value {
+  font-size: 18px;
+}
+/* レスポンシブな改行のためのスタイル */
+@media (max-width: 480px) {
+  .header-catchphrase .break-on-mobile {
+    display: block; /* 画面幅が狭い時だけ改行 */
+  }
+}
+
+/* --- QRコードモーダル --- */
+.qr-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none; /* 初期状態では非表示 */
+  align-items: center; justify-content: center;
+  z-index: 2100; /* 他のモーダルより手前に表示 */
+}
+.qr-modal-content {
+  background-color: white;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+.qr-modal-content .modal-body {
+  padding: 20px;
+}
+#qrcode { display: flex; justify-content: center; align-items: center; }
+.qr-modal-content p { font-size: 13px; color: #6c757d; margin-top: 15px; margin-bottom: 0; }
+.qr-modal-overlay.is-visible {
+  display: flex;
+}
+
+/* --- シェアボタン --- */
+.share-button-container {
+  position: fixed;
+  top: 60px; /* ハンバーガーメニュー(高さ40px + 上マージン10px)の下に配置 */
+  right: 15px; /* ハンバーガーメニューと右端を揃える */
+  z-index: 1001;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+.share-button-container.is-hidden { opacity: 0; visibility: hidden; }
+.share-btn { width: 40px; height: 40px; background-color: var(--text-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: none; cursor: pointer; }
+.share-btn:hover { background-color: #0c2a43; } /* --text-colorの少し暗い色 */
