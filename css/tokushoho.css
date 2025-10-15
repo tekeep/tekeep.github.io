@@ -1,0 +1,37 @@
+body {
+    background: white;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.7;
+}
+h2 {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 8px;
+    margin-top: 0;
+}
+dl {
+    margin: 0;
+    padding: 0;
+}
+dt {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-top: 1px solid var(--light-gray);
+    padding: 12px;
+}
+dd {
+    margin: 0;
+    padding: 12px;
+    border-bottom: 1px solid var(--light-gray);
+}
+a:hover {
+    text-decoration: underline;
+}
+.contact-section {
+    margin-top: 20px;
+    padding: 16px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
