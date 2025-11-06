@@ -512,7 +512,7 @@ function setupModal(modalId, openBtnId) {
         newIframe.frameBorder = '0';
         newIframe.marginHeight = '0';
         newIframe.marginWidth = '0';
-        const deviceId = currentParams.deviceId || 'N/A';
+        const deviceId = localStorage.getItem('deviceId') || 'N/A';
         const formId = '1FAIpQLSdl1Tjp7hJAyCirrE_2LoL_4DWhMw2OyEHLEWBL-_WlC2rYbg'; // フォーム自体のID
         const entryId = '1585594458'; // entry ID
         newIframe.src = `https://docs.google.com/forms/d/e/${formId}/viewform?embedded=true&entry.${entryId}=${encodeURIComponent(deviceId)}`;

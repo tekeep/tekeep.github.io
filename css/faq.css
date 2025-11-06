@@ -1,0 +1,31 @@
+/* FAQページのアコーディオン専用スタイル */
+#faq-list dt {
+    position: relative; /* 矢印の配置のため */
+    cursor: pointer;
+    padding-right: 40px; /* 矢印のスペースを確保 */
+}
+
+#faq-list dt::after {
+    content: '\f078'; /* Font Awesomeのchevron-down */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease-in-out;
+}
+
+#faq-list dt.active::after {
+    transform: translateY(-50%) rotate(180deg); /* 上向きにする */
+}
+
+#faq-list dd {
+    margin: 0;
+    padding: 12px;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+#faq-list dd {
+    display: none; /* 初期状態では非表示 */
+}
