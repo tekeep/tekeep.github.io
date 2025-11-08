@@ -79,7 +79,7 @@ function getParamsFromForm() {
 
   // バリデーション
   if (!(params.fare > 0) || !params.startDate) {
-    alert('正しい運賃と起算日を入力してください');
+    alert('正しい運賃とシミュレーション開始日を入力してください');
     return null;
   }
   if (!isOneMonthChecked && !isThreeMonthChecked && !isSixMonthChecked) {
