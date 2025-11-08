@@ -1,10 +1,12 @@
+import configPromise from './config.js';
+import * as holiday_jp from "https://cdn.jsdelivr.net/npm/@holiday-jp/holiday_jp/+esm";
+
 let config;
 let supabase;
 let STRIPE_PUBLISHABLE_KEY;
 let GAS_URL;
 
-// デバッグキーをURLから取得
-const DEBUG_KEY = new URLSearchParams(window.location.search).get('debugKey') || null;
+const CACHE_VERSION = "1.0.0"; // キャッシュバージョンの定義をここに集約
 
 /**
  * 認証状態をサーバーと同期する
@@ -42,10 +44,6 @@ async function syncAuthState(supabase) {
         }
     }
 }
-
-import * as holiday_jp from "https://cdn.jsdelivr.net/npm/@holiday-jp/holiday_jp/+esm";
-
-const CACHE_VERSION = "1.0.0"; // キャッシュバージョンの定義をここに集約
 
 /**
  * フォームから入力値を取得し、GASに渡すパラメータオブジェクトを作成する
@@ -705,34 +703,6 @@ function restoreFormState() {
  * アプリケーションの初期化処理
  */
 async function initializeApp() {
-    // --- アップグレード直後の期間更新処理 ---
-    if (localStorage.getItem('justUpgraded') === 'true') {
-        const plan = localStorage.getItem('licensePlan');
-        const newDefault = (plan === 'pro') ? '24' : '12'; // standard or pro
-        localStorage.setItem('durationInMonths', newDefault);
-        localStorage.removeItem('justUpgraded'); // フラグは一度使ったら削除
-    }
-
-    // この関数はグローバルスコープの initialLicensePlan を初期化する
-    initialLicensePlan = localStorage.getItem('licensePlan'); // 初期プランを記憶
-    // --- ライセンス状態の確認とUI反映 ---
-    const upgradeNotice = document.getElementById('upgrade-notice');
-    const upgradeLink = document.getElementById('open-pricing-from-notice');
-
-    // deviceIdがなければここで生成・保存する
-    if (!localStorage.getItem('deviceId')) { localStorage.setItem('deviceId', 'device_' + Date.now()); }
-
-    const licenseKey = localStorage.getItem('licenseKey');
-    const licensePlan = localStorage.getItem('licensePlan');
-    if (licenseKey && licensePlan) {
-        document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-user-check"></i>ライセンス情報';
-        // 有料プランの場合は広告を非表示にする
-        const adContainer = document.getElementById('ad-container-index');
-        if (adContainer) {
-            adContainer.style.display = 'none';
-        }
-    }
-
     createDaySettingCards(); // 曜日設定カードを生成
     restoreFormState();      // LocalStorageから設定を復元
 
@@ -744,6 +714,24 @@ async function initializeApp() {
         });
     });
 
+    // --- アップグレード直後の期間更新処理 ---
+    if (localStorage.getItem('justUpgraded') === 'true') {
+        const plan = localStorage.getItem('licensePlan');
+        const newDefault = (plan === 'pro') ? '24' : '12'; // standard or pro
+        localStorage.setItem('durationInMonths', newDefault);
+        localStorage.removeItem('justUpgraded'); // フラグは一度使ったら削除
+    }
+
+    // この関数はグローバルスコープの initialLicensePlan を初期化する
+    initialLicensePlan = localStorage.getItem('licensePlan'); // 初期プランを記憶
+
+    // --- ライセンス状態の確認とUI反映 ---
+    const upgradeNotice = document.getElementById('upgrade-notice');
+    const upgradeLink = document.getElementById('open-pricing-from-notice');
+
+    // deviceIdがなければここで生成・保存する
+    if (!localStorage.getItem('deviceId')) { localStorage.setItem('deviceId', 'device_' + Date.now()); }
+
     // 期間選択のプルダウンを生成
     const durationSelect = document.getElementById('duration');
     durationSelect.innerHTML = ''; // 既存の選択肢をクリア
@@ -751,6 +739,7 @@ async function initializeApp() {
     let maxDuration = 12;
     let defaultDuration = '12';
 
+    const licensePlan = localStorage.getItem('licensePlan');
     if (!licensePlan) { // フリープラン
       maxDuration = 4;
       defaultDuration = '4';
@@ -789,6 +778,15 @@ async function initializeApp() {
     const sixMonthCheckbox = document.getElementById('includeSixMonthPass');
     const threeMonthPassGroup = document.getElementById('threeMonthPassInput').closest('.input-group');
     const sixMonthPassGroup = document.getElementById('sixMonthPassInput').closest('.input-group');
+
+    if (localStorage.getItem('licenseKey') && licensePlan) {
+        document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-user-check"></i>ライセンス情報';
+        // 有料プランの場合は広告を非表示にする
+        const adContainer = document.getElementById('ad-container-index');
+        if (adContainer) {
+            adContainer.style.display = 'none';
+        }
+    }
 
     if (!licensePlan) {
         if (threeMonthPassGroup) threeMonthPassGroup.style.display = 'none';
@@ -1005,24 +1003,11 @@ function setupModal(modalId, openBtnId) {
  * =================================================
  */
 document.addEventListener('DOMContentLoaded', async () => {
-    // --- 環境設定の初期化 ---
-    console.log(`実行環境: ${window.APP_ENV}`);
-    config = window.APP_CONFIG;
-
-    // 開発環境の場合、ローカル設定ファイル(config.local.js)で設定を上書きする
-    if (window.APP_ENV === 'development') {
-        try {
-            const localConfigModule = await import('./config.local.js');
-            if (localConfigModule.default) {
-                config = { ...config, ...localConfigModule.default };
-                console.log('ローカル設定ファイル (config.local.js) で設定を上書きしました。');
-            }
-        } catch (e) {
-            console.log('ローカル設定ファイル (config.local.js) は見つかりませんでした。');
-        }
-    }
-
-    // --- グローバル変数の設定 ---
+    // --- 設定ファイルの読み込み ---
+    const { APP_CONFIG, APP_ENV } = await configPromise;
+    config = APP_CONFIG;
+    window.APP_CONFIG = config; // グローバルにも設定
+    window.APP_ENV = APP_ENV;
     supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
     STRIPE_PUBLISHABLE_KEY = config.stripePublishableKey;
     GAS_URL = config.gasUrl;

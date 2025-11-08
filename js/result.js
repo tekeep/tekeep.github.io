@@ -1,3 +1,5 @@
+import configPromise from './config.js';
+
 function atMidnight(d){ const nd=new Date(d.getFullYear(),d.getMonth(),d.getDate()); nd.setHours(0,0,0,0); return nd; }
 let myChart = null; // Chart.jsのインスタンスを保持するグローバル変数
 let currentResultData = null; // GASからの結果を保持するグローバル変数
@@ -405,6 +407,17 @@ function setupCalendarLinks() {
 
 // ページ読み込み完了時にLocalStorageから結果を読み込んで描画
 document.addEventListener('DOMContentLoaded', () => {
+  // --- Google Analyticsの動的読み込み (importしたAPP_CONFIGを利用) ---
+  if (APP_CONFIG && APP_CONFIG.gaMeasurementId) {
+      const gtagScript = document.createElement('script');
+      gtagScript.async = true;
+      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${APP_CONFIG.gaMeasurementId}`;
+      document.head.appendChild(gtagScript);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = window.gtag || function() { dataLayer.push(arguments); }; // gtagが未定義の場合のフォールバック
+      window.gtag('js', new Date());
+      window.gtag('config', APP_CONFIG.gaMeasurementId);
+  }
   // localStorageから一時的な結果データを取得
   const resultDataString = localStorage.getItem('simulationResultData');
 
@@ -562,3 +575,76 @@ window.addEventListener('message', (event) => {
         if (window.open_contactModal) window.open_contactModal();
     }
 });
+
+/**
+ * メイン処理を実行する非同期関数
+ */
+async function main() {
+  // --- 1. 設定ファイルの読み込みを待つ ---
+  const { APP_CONFIG, APP_ENV } = await configPromise;
+  window.APP_CONFIG = APP_CONFIG; // グローバルにも設定
+  window.APP_ENV = APP_ENV;
+
+  // --- 2. Google Analyticsの動的読み込み ---
+  if (APP_CONFIG.gaMeasurementId) {
+      const gtagScript = document.createElement('script');
+      gtagScript.async = true;
+      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${APP_CONFIG.gaMeasurementId}`;
+      document.head.appendChild(gtagScript);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = window.gtag || function() { dataLayer.push(arguments); };
+      window.gtag('js', new Date());
+      window.gtag('config', APP_CONFIG.gaMeasurementId);
+  }
+
+  // --- 3. LocalStorageから結果データを取得して描画 ---
+  const resultDataString = localStorage.getItem('simulationResultData');
+  if (resultDataString) {
+    const parsedData = JSON.parse(resultDataString);
+    const resultData = parsedData.resultData;
+    const paramsData = parsedData.paramsData;
+
+    localStorage.removeItem('simulationResultData');
+
+    renderResult(resultData, paramsData);
+    document.getElementById('resultScreen').style.display = 'block';
+    document.getElementById('resultFooter').style.display = 'block';
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else {
+    document.getElementById('resultScreen').style.display = 'none';
+    document.getElementById('errorScreen').style.display = 'block';
+  }
+
+  // --- 4. UIの初期化とイベントリスナーの登録 ---
+  const savedWeekStart = localStorage.getItem('weekStartPreference');
+  if (savedWeekStart) {
+    const radio = document.querySelector(`input[name="weekStartResult"][value="${savedWeekStart}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  document.getElementById('toggleCalendarBtn').addEventListener('click', toggleAccordion);
+  document.getElementById('toggleCalendarViewBtn').addEventListener('click', toggleCalendarView);
+
+  document.getElementById('prevMonthBtn').addEventListener('click', () => {
+    if (currentDisplayMonthIndex > 0) {
+      currentDisplayMonthIndex--;
+      drawCalendar();
+    }
+  });
+  document.getElementById('nextMonthBtn').addEventListener('click', () => {
+    const simEndDate = addDays(addMonths(new Date(currentParams.startDate), currentParams.durationInMonths), -1);
+    const nextMonthDate = addMonths(new Date(currentParams.startDate), currentDisplayMonthIndex + 1);
+    if (nextMonthDate.getFullYear() < simEndDate.getFullYear() || 
+        (nextMonthDate.getFullYear() === simEndDate.getFullYear() && nextMonthDate.getMonth() <= simEndDate.getMonth())) {
+      currentDisplayMonthIndex++;
+      drawCalendar();
+    }
+  });
+
+  setupModal('contactModal', 'openContactFooter');
+  setupModal('tokushohoModal', 'openTokushohoModal');
+}
+
+// メイン処理を実行
+main();
