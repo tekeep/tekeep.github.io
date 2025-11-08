@@ -18,24 +18,22 @@
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png" sizes="180x180">
 <link rel="icon" type="image/png" href="images/icon-192x192.png" sizes="192x192">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<link rel="stylesheet" href="css/common.css">
-<link rel="stylesheet" href="css/result.css"> <!-- result.cssを流用 -->
-<link rel="stylesheet" href="css/faq.css">
-<link rel="stylesheet" href="css/index.css"> <!-- index.cssのスタイルを適用 -->
-<link rel="stylesheet" href="css/tokushoho.css"> <!-- dl, dt, ddのスタイルを流用 -->
+<link rel="stylesheet" href="css/common.css" />
+<link rel="stylesheet" href="css/static-page.css" />
+<link rel="stylesheet" href="css/faq.css" />
 </head>
-<body style="max-width: 980px; margin: 20px auto 0; background: var(--background-color); padding: 0 15px 80px;">
+<body>
 
-<header style="text-align: center; margin-bottom: 30px;">
+<header>
   <a href="." style="text-decoration: none; display: inline-block;">
-    <img src="images/logo.png" alt="TeKeep! ロゴ" class="logo-img" style="display: block; margin: 0 auto 24px;">
+    <img src="images/logo.png" alt="TeKeep! ロゴ" class="logo-img">
   </a>
-  <div style="border-top: 1px solid var(--border-color); margin-bottom: 16px;"></div>
-  <h2 class="result-header" style="gap: 8px;"><i class="fa-solid fa-circle-question" style="color: var(--primary-color); font-size: 24px; position: relative; top: -1px;"></i>よくある質問</h2>
-  <div style="border-top: 1px solid var(--border-color);"></div>
+  <div class="header-divider" style="margin-bottom: 16px;"></div>
+  <h2 class="page-header"><i class="fa-solid fa-circle-question"></i>よくある質問</h2>
+  <div class="header-divider"></div>
 </header>
 
-<div id="main-content" style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px 30px; margin-bottom: 20px;">
+<div id="main-content">
   <dl id="faq-list">
     <dt>Q. このアプリは本当に無料ですか？</dt>
     <dd>A. はい、基本的な機能（最大4ヶ月のシミュレーション）はすべて無料でご利用いただけます。シミュレーション期間を最大24ヶ月に延長したり、広告を非表示にしたりできる便利な有料プランもご用意しています。</dd>
@@ -67,7 +65,7 @@
 </div>
 
 <div id="bottomBtn">
-  <button id="recalculateBtn" onclick="window.location.href='.'" style="display: block; max-width: 980px; margin: 0 auto; width: calc(100% - 30px);">トップページに戻る</button>
+  <button class="static-page-bottom-btn" onclick="window.location.href='.'" style="display: block; max-width: 980px; margin: 0 auto; width: calc(100% - 30px);">トップページに戻る</button>
 </div>
 
 <!-- お問い合わせモーダル -->

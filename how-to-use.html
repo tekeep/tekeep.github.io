@@ -18,22 +18,36 @@
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png" sizes="180x180">
 <link rel="icon" type="image/png" href="images/icon-192x192.png" sizes="192x192">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<link rel="stylesheet" href="css/common.css">
-<link rel="stylesheet" href="css/index.css"> <!-- index.cssのスタイルを適用 -->
-<link rel="stylesheet" href="css/result.css"> <!-- result.cssを流用 -->
+<link rel="stylesheet" href="css/common.css" />
+<link rel="stylesheet" href="css/static-page.css" />
+<style>
+  /* このページ固有のスタイル */
+  .how-to-use-heading { color: var(--primary-color); }
+  .how-to-use-section p { padding-left: 1em; line-height: 1.7; }
+  .how-to-use-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .how-to-use-section h4 i {
+    color: var(--primary-color);
+    width: 20px;
+  }
+  .section-divider { border: 0; border-top: 1px solid var(--light-gray); margin: 24px 0; }
+</style>
 </head>
-<body style="max-width: 980px; margin: 20px auto 0; background: var(--background-color); padding: 0 15px 80px;">
+<body>
 
-<header style="text-align: center; margin-bottom: 30px;">
+<header>
   <a href="." style="text-decoration: none; display: inline-block;">
-    <img src="images/logo.png" alt="TeKeep! ロゴ" class="logo-img" style="display: block; margin: 0 auto 24px;">
+    <img src="images/logo.png" alt="TeKeep! ロゴ" class="logo-img">
   </a>
-  <div style="border-top: 1px solid var(--border-color); margin-bottom: 16px;"></div>
-  <h2 class="result-header" style="gap: 8px;"><i class="fa-solid fa-book-open" style="color: var(--primary-color); font-size: 24px; position: relative; top: -1px;"></i>使い方</h2>
-  <div style="border-top: 1px solid var(--border-color);"></div>
+  <div class="header-divider" style="margin-bottom: 16px;"></div>
+  <h2 class="page-header"><i class="fa-solid fa-book-open"></i>使い方</h2>
+  <div class="header-divider"></div>
 </header>
 
-<div id="main-content" style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px 30px; margin-bottom: 20px;">
+<div id="main-content">
   <p style="font-size: 16px; line-height: 1.7; margin-bottom: 24px;">
     TeKeep!は、あなたの通勤・通学スタイルに合わせて、交通費が最も安くなる定期券の購入プランをシミュレーションするアプリです。
     以下のステップに沿って入力するだけで、誰でも簡単に交通費の節約を始められます。
@@ -41,7 +55,7 @@
 
   <hr class="section-divider">
   
-  <h3 class="how-to-use-heading" style="color: var(--primary-color);">Step 1. 交通費と期間を入力する</h3>
+  <h3 class="how-to-use-heading">Step 1. 交通費と期間を入力する</h3>
   <div class="how-to-use-section">
     <h4>交通費（運賃・定期代）</h4>
         <p style="padding-left: 1em;">毎日利用する交通機関の「片道運賃」と、比較したい「定期代」を入力します。比較したい定期券（1ヶ月、3ヶ月、6ヶ月）は、右側のスイッチで自由にON/OFFできます。<br>※3ヶ月、6ヶ月定期は有料プランでのみ比較可能です。</p>
@@ -51,7 +65,7 @@
 
   <hr class="section-divider">
 
-  <h3 class="how-to-use-heading" style="color: var(--primary-color);">Step 2. 休日を細かく設定する</h3>
+  <h3 class="how-to-use-heading">Step 2. 休日を細かく設定する</h3>
   <div class="how-to-use-section">
     <h4>曜日ごとの設定</h4>
         <p style="padding-left: 1em;">あなたの働き方に合わせて、曜日ごとに「勤務」「毎週休み」「隔週休み」などを設定できます。デフォルトでは土日が休日になっています。</p>
@@ -63,33 +77,33 @@
 
   <hr class="section-divider">
 
-  <h3 class="how-to-use-heading" style="color: var(--primary-color);">Step 3. 計算結果を確認する</h3>
+  <h3 class="how-to-use-heading">Step 3. 計算結果を確認する</h3>
   <div class="how-to-use-section">
     <p>すべての入力が終わったら、「計算する」ボタンを押してください。最適な購入プランを計算し、結果ページに移動します。</p>
-    <h4><i class="fa-solid fa-coins" style="color: var(--primary-color); width: 20px;"></i> 節約額</h4>
+    <h4><i class="fa-solid fa-coins"></i> 節約額</h4>
         <p style="padding-left: 1em;">あなたが選んだ最も長い期間の定期券を買い続けた場合と比べて、どれだけ交通費がお得になるかを表示します。</p>
-    <h4><i class="fa-solid fa-list-check" style="color: var(--primary-color); width: 20px;"></i> 最適な定期券購入プラン</h4>
+    <h4><i class="fa-solid fa-list-check"></i> 最適な定期券購入プラン</h4>
         <p style="padding-left: 1em;">「いつ」「何ヶ月定期」を買うべきか、具体的な日付と定期券の組み合わせをリストで表示します。日付をクリックすると、Googleカレンダーに購入予定を登録することもできます。</p>
-    <h4><i class="fa-solid fa-chart-column" style="color: var(--primary-color); width: 20px;"></i> コスト比較グラフ</h4>
+    <h4><i class="fa-solid fa-chart-column"></i> コスト比較グラフ</h4>
         <p style="padding-left: 1em;">「最適プラン」が、他の購入パターン（例：「すべて切符で利用」など）と比べてどれだけ安いかを棒グラフで視覚的に比較できます。</p>
-    <h4><i class="fa-solid fa-calendar-days" style="color: var(--primary-color); width: 20px;"></i> 利用プランカレンダー</h4>
+    <h4><i class="fa-solid fa-calendar-days"></i> 利用プランカレンダー</h4>
         <p style="padding-left: 1em;">計算結果が、カレンダー上でどのように適用されるかを確認できます。「定期を利用する期間」や「切符で対応する日」などが色分けで表示され、月ごとの利用イメージを具体的に把握できます。</p>
   </div>
 
   <hr class="section-divider">
 
-  <h3 class="how-to-use-heading" style="color: var(--primary-color);">有料プランとライセンス</h3>
+  <h3 class="how-to-use-heading">有料プランとライセンス</h3>
   <div class="how-to-use-section">
-    <h4><i class="fa-solid fa-gem" style="color: var(--primary-color); width: 20px;"></i> 料金プラン</h4>
+    <h4><i class="fa-solid fa-gem"></i> 料金プラン</h4>
         <p style="padding-left: 1em;">無料のフリープランでも基本的な機能はすべてお使いいただけますが、有料プランにアップグレードすると、3ヶ月・6ヶ月定期の比較や、シミュレーション期間が最大24ヶ月に延長できるなど、さらに便利にご利用いただけます。詳細はメニューの「料金プラン」からご確認ください。</p>
-    <h4><i class="fa-solid fa-key" style="color: var(--primary-color); width: 20px;"></i> ライセンス認証</h4>
+    <h4><i class="fa-solid fa-key"></i> ライセンス認証</h4>
         <p style="padding-left: 1em;">有料プランを購入すると、あなた専用の「ライセンスキー」が発行されます。メニューの「ライセンス認証」からキーを入力することで、プランが有効になります。機種変更などをした場合も、同じキーを使えば新しいデバイスでプランを引き継ぐことができます。</p>
   </div>
 
 </div>
 
 <div id="bottomBtn">
-  <button id="recalculateBtn" onclick="window.location.href='.'" style="display: block; max-width: 980px; margin: 0 auto; width: calc(100% - 30px);">トップページに戻る</button>
+  <button class="static-page-bottom-btn" onclick="window.location.href='.'" style="display: block; max-width: 980px; margin: 0 auto; width: calc(100% - 30px);">トップページに戻る</button>
 </div>
 
 <!-- お問い合わせモーダル -->

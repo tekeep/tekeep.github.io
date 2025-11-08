@@ -1,4 +1,18 @@
 /* FAQページのアコーディオン専用スタイル */
+
+#faq-list {
+    margin: 0;
+    padding: 0;
+}
+
+#faq-list dt {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-top: 1px solid var(--light-gray);
+    padding: 12px;
+}
+
+/* アコーディオンのスタイル */
 #faq-list dt {
     position: relative; /* 矢印の配置のため */
     cursor: pointer;
@@ -22,10 +36,8 @@
 
 #faq-list dd {
     margin: 0;
-    padding: 12px;
+    padding: 16px 12px;
     border-bottom: 1px solid var(--light-gray);
-}
-
-#faq-list dd {
     display: none; /* 初期状態では非表示 */
+    line-height: 1.7;
 }
