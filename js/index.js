@@ -78,8 +78,12 @@ function getParamsFromForm() {
   };
 
   // バリデーション
-  if (!(params.fare > 0) || !params.startDate) {
-    alert('正しい運賃とシミュレーション開始日を入力してください');
+  if (!(params.fare > 0)) {
+    alert('片道運賃を入力してください');
+    return null;
+  }
+  if (!params.startDate) {
+    alert('シミュレーション開始日を入力してください');
     return null;
   }
   if (!isOneMonthChecked && !isThreeMonthChecked && !isSixMonthChecked) {
