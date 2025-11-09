@@ -405,80 +405,6 @@ function setupCalendarLinks() {
 
 // --- イベントリスナー ---
 
-// ページ読み込み完了時にLocalStorageから結果を読み込んで描画
-document.addEventListener('DOMContentLoaded', () => {
-  // --- Google Analyticsの動的読み込み (importしたAPP_CONFIGを利用) ---
-  if (APP_CONFIG && APP_CONFIG.gaMeasurementId) {
-      const gtagScript = document.createElement('script');
-      gtagScript.async = true;
-      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${APP_CONFIG.gaMeasurementId}`;
-      document.head.appendChild(gtagScript);
-      window.dataLayer = window.dataLayer || [];
-      window.gtag = window.gtag || function() { dataLayer.push(arguments); }; // gtagが未定義の場合のフォールバック
-      window.gtag('js', new Date());
-      window.gtag('config', APP_CONFIG.gaMeasurementId);
-  }
-  // localStorageから一時的な結果データを取得
-  const resultDataString = localStorage.getItem('simulationResultData');
-
-  let resultData = null;
-  let paramsData = {}; // 初期値を空のオブジェクトに
-
-  if (resultDataString) {
-    // --- データが存在する場合 ---
-    const parsedData = JSON.parse(resultDataString);
-    resultData = parsedData.resultData;
-    paramsData = parsedData.paramsData;
-
-    // 不要になった一時データをlocalStorageから削除
-    localStorage.removeItem('simulationResultData');
-
-    // --- パラメータが存在する場合のみ、結果表示処理を実行 ---
-    renderResult(resultData, paramsData);
-    document.getElementById('resultScreen').style.display = 'block';
-    document.getElementById('resultFooter').style.display = 'block';
-
-    // URLから不要なパラメータを削除（リロード対策）
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-  } else {
-    // --- パラメータがない場合は、エラー画面を表示 ---
-    document.getElementById('resultScreen').style.display = 'none';
-    document.getElementById('errorScreen').style.display = 'block';
-  }
-
-  // 週の始まり設定の読み込み
-  const savedWeekStart = localStorage.getItem('weekStartPreference');
-  if (savedWeekStart) {
-    const radio = document.querySelector(`input[name="weekStartResult"][value="${savedWeekStart}"]`);
-    if (radio) {
-      radio.checked = true;
-    }
-  }
-
-  // --- イベントリスナーの登録 ---
-  document.getElementById('toggleCalendarBtn').addEventListener('click', toggleAccordion);
-  document.getElementById('toggleCalendarViewBtn').addEventListener('click', toggleCalendarView);
-
-  document.getElementById('prevMonthBtn').addEventListener('click', () => {
-    if (currentDisplayMonthIndex > 0) {
-      currentDisplayMonthIndex--;
-      drawCalendar();
-    }
-  });
-  document.getElementById('nextMonthBtn').addEventListener('click', () => {
-    // 期間の最終月を超えないように制限
-    const simEndDate = addDays(addMonths(new Date(currentParams.startDate), currentParams.durationInMonths), -1);
-    const nextMonthDate = addMonths(new Date(currentParams.startDate), currentDisplayMonthIndex + 1);
-    // 次の月がシミュレーション終了日を超えていないかチェック
-    if (nextMonthDate.getFullYear() < simEndDate.getFullYear() || 
-        (nextMonthDate.getFullYear() === simEndDate.getFullYear() && nextMonthDate.getMonth() <= simEndDate.getMonth())) {
-      currentDisplayMonthIndex++;
-      drawCalendar();
-    }
-  });
-});
-
 // 週の始まりラジオボタンにイベントリスナーを追加
 document.querySelectorAll('input[name="weekStartResult"]').forEach(radio => {
   radio.addEventListener('change', (e) => {
@@ -503,7 +429,6 @@ async function main() {
       gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${APP_CONFIG.gaMeasurementId}`;
       document.head.appendChild(gtagScript);
       window.dataLayer = window.dataLayer || [];
-      window.gtag = window.gtag || function() { dataLayer.push(arguments); };
       window.gtag('js', new Date());
       window.gtag('config', APP_CONFIG.gaMeasurementId);
   }
@@ -527,7 +452,7 @@ async function main() {
     document.getElementById('errorScreen').style.display = 'block';
   }
 
-  // --- 4. UIの初期化とイベントリスナーの登録 ---
+  // --- 4. UIの初期化とイベントリスナーの登録 (旧DOMContentLoaded内の処理) ---
   const savedWeekStart = localStorage.getItem('weekStartPreference');
   if (savedWeekStart) {
     const radio = document.querySelector(`input[name="weekStartResult"][value="${savedWeekStart}"]`);
@@ -544,15 +469,16 @@ async function main() {
     }
   });
   document.getElementById('nextMonthBtn').addEventListener('click', () => {
-    const simEndDate = addDays(addMonths(new Date(currentParams.startDate), currentParams.durationInMonths), -1);
-    const nextMonthDate = addMonths(new Date(currentParams.startDate), currentDisplayMonthIndex + 1);
-    if (nextMonthDate.getFullYear() < simEndDate.getFullYear() || 
-        (nextMonthDate.getFullYear() === simEndDate.getFullYear() && nextMonthDate.getMonth() <= simEndDate.getMonth())) {
-      currentDisplayMonthIndex++;
-      drawCalendar();
+    if (currentParams) {
+      const simEndDate = addDays(addMonths(new Date(currentParams.startDate), currentParams.durationInMonths), -1);
+      const nextMonthDate = addMonths(new Date(currentParams.startDate), currentDisplayMonthIndex + 1);
+      if (nextMonthDate.getFullYear() < simEndDate.getFullYear() ||
+          (nextMonthDate.getFullYear() === simEndDate.getFullYear() && nextMonthDate.getMonth() <= simEndDate.getMonth())) {
+        currentDisplayMonthIndex++;
+        drawCalendar();
+      }
     }
   });
-
 }
 
 // メイン処理を実行
