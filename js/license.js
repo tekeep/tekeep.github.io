@@ -202,6 +202,12 @@ submitBtn.addEventListener('click', async () => {
             document.getElementById('current-license-key').textContent = maskLicenseKey(response.key);
             document.getElementById('current-expires-at').textContent = formatExpiresAt(response.expiresAt);
             loadAndRenderDevices(response.key); // 認証成功後にもデバイスリストを更新
+
+            // iframeのURLを更新して、UIの状態とURLを同期させる
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('key', response.key);
+            newUrl.searchParams.set('plan', response.plan);
+            history.pushState({}, '', newUrl);
             showMessage('ライセンス認証に成功しました。', 'success');
             sendHeight(); // 高さを再計算
         } else if (response.status === 'device_limit_exceeded') {
@@ -274,8 +280,8 @@ document.getElementById('revokeLicenseBtn').addEventListener('click', async () =
     if (!confirm('このデバイスの登録を解除します。よろしいですか？')) return;
 
     const urlParams = new URLSearchParams(window.location.search);
-    const key = urlParams.get('key'); // 認証解除は常に表示中のキーで行う
-    const deviceIdToRemove = urlParams.get('deviceId');
+    const key = currentLicenseKey || urlParams.get('key'); // 認証直後は内部変数、それ以外はURLから
+    const deviceIdToRemove = currentDeviceId || urlParams.get('deviceId');
     if (!key || !deviceIdToRemove) return;
 
     const btn = document.getElementById('revokeLicenseBtn');
@@ -304,6 +310,7 @@ document.getElementById('revokeLicenseBtn').addEventListener('click', async () =
             // UIを未認証フォームに切り替え、成功メッセージを表示
             showAuthForm();
             showMessage('ライセンスの認証を解除しました。', 'success');
+            sendHeight(); // 高さを再計算
         } else {
             showMessage(response.message || '解除に失敗しました。', 'error');
         }

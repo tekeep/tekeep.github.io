@@ -902,107 +902,64 @@ amountInputs.forEach(id => {
 
 /**
  * =================================================
- * ハンバーガーメニュー、モーダル、iframe通信の制御
+ * 認証状態変更に伴うUI更新
  * =================================================
  */
-let initialLicensePlan = null; // ページ読み込み時のプランを記憶するグローバル変数
-let stripe = null; // Stripe V3 オブジェクトを保持
-let stripeCheckout = null; // Stripeの埋め込み決済オブジェクトを保持するグローバル変数
 
-function setupModal(modalId, openBtnId) {
-  const modal = document.getElementById(modalId);
-  if (!modal) return;
-  const openBtn = document.getElementById(openBtnId);
-  const closeBtn = modal.querySelector('.modal-close-btn');
+/**
+ * ライセンスプランの変更を検知し、UIを動的に更新する
+ * ページリロードなしで、シミュレーション期間や定期券入力欄を更新する
+ */
+function updateUIForAuthChange() {
+    const licensePlan = localStorage.getItem('licensePlan');
+    const durationSelect = document.getElementById('duration');
+    const upgradeNotice = document.getElementById('upgrade-notice');
+    const threeMonthPassGroup = document.getElementById('threeMonthPassInput').closest('.input-group');
+    const sixMonthPassGroup = document.getElementById('sixMonthPassInput').closest('.input-group');
+    const adContainer = document.getElementById('ad-container-index');
 
-  const updateIframeSrc = () => {
-    if (modalId === 'licenseModal') {
-      const licenseKey = localStorage.getItem('licenseKey');
-      // iframeに渡す情報を追加
-      const licensePlan = localStorage.getItem('licensePlan');
-      const expiresAt = localStorage.getItem('licenseExpiresAt');
-      const deviceId = localStorage.getItem('deviceId');
-      const iframe = document.getElementById('licenseIframe');
-      iframe.src = `license.html?key=${encodeURIComponent(licenseKey || '')}&plan=${encodeURIComponent(licensePlan || '')}&deviceId=${encodeURIComponent(deviceId || '')}&expiresAt=${encodeURIComponent(expiresAt || '')}`;
-    } else if (modalId === 'pricingModal') {
-      const licensePlan = localStorage.getItem('licensePlan');
-      const iframe = document.getElementById('pricingIframe');
-      iframe.src = `pricing.html?plan=${encodeURIComponent(licensePlan || 'free')}`;
-    }
-  };
+    let maxDuration, defaultDuration;
 
-  const openModal = (e) => {
-    if (e) e.preventDefault();
-    if (modalId === 'contactModal') {
-        // お問い合わせモーダルの場合、常にiframeを再生成してクリーンな状態にする
-        const modalBody = modal.querySelector('.modal-body');
-        modalBody.innerHTML = ''; // 古いiframeを削除
-        const newIframe = document.createElement('iframe');
-        newIframe.id = 'contactIframe';
-        newIframe.frameBorder = '0';
-        newIframe.marginHeight = '0';
-        newIframe.marginWidth = '0';
-        const deviceId = localStorage.getItem('deviceId') || 'N/A';
-        const formId = '1FAIpQLSdl1Tjp7hJAyCirrE_2LoL_4DWhMw2OyEHLEWBL-_WlC2rYbg'; // フォーム自体のID
-        const entryId = '1585594458'; // entry ID
-        newIframe.src = `https://docs.google.com/forms/d/e/${formId}/viewform?embedded=true&entry.${entryId}=${encodeURIComponent(deviceId)}`;
-        modalBody.appendChild(newIframe);
-    } else {
-        // 他モーダルはsrcを更新するだけ
-        updateIframeSrc();
-    }
-    modal.classList.add('is-visible');
-  };
-
-  // windowに関数を公開し、他のモーダルから開けるようにする
-  window[`open_${modalId}`] = () => {
-    // 他のモーダルが開いていれば閉じる
-    document.querySelectorAll('.modal-overlay.is-visible').forEach(m => m.classList.remove('is-visible'));
-    openModal();
-  };
-
-  const closeModal = () => {
-    const currentLicensePlan = localStorage.getItem('licensePlan');
-    modal.classList.remove('is-visible');
-
-    // お問い合わせモーダルを閉じた際にiframeを完全に削除し、beforeunload警告を抑制する
-    if (modalId === 'contactModal') {
-        const modalBody = modal.querySelector('.modal-body');
-        modalBody.innerHTML = '<iframe id="contactIframe" src="about:blank" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>';
+    if (!licensePlan) { // フリープラン
+        maxDuration = 4;
+        defaultDuration = '4';
+        if (upgradeNotice) upgradeNotice.style.display = 'block';
+        if (threeMonthPassGroup) threeMonthPassGroup.style.display = 'none';
+        if (sixMonthPassGroup) sixMonthPassGroup.style.display = 'none';
+        if (adContainer) adContainer.style.display = 'block';
+    } else { // 有料プラン
+        maxDuration = (licensePlan === 'pro') ? 24 : 12;
+        defaultDuration = (licensePlan === 'pro') ? '24' : '12';
+        if (upgradeNotice) upgradeNotice.style.display = 'none';
+        if (threeMonthPassGroup) threeMonthPassGroup.style.display = 'block';
+        if (sixMonthPassGroup) sixMonthPassGroup.style.display = 'block';
+        if (adContainer) adContainer.style.display = 'none';
     }
 
-    // 決済モーダルを閉じた際の特別な後処理
-    if (modalId === 'paymentModal') {
-      if (stripeCheckout) {
-        stripeCheckout.destroy();
-        stripeCheckout = null;
-      }
-      // pricing.htmlにモーダルが閉じたことを通知し、ボタンの状態をリセットさせる
-      const pricingIframe = document.getElementById('pricingIframe')?.contentWindow;
-      if (pricingIframe) {
-        pricingIframe.postMessage({ type: 'checkoutSessionClosed' }, '*');
-      }
+    // 期間選択プルダウンを再生成
+    durationSelect.innerHTML = '';
+    for (let i = 2; i <= maxDuration; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = i;
+        durationSelect.appendChild(option);
     }
 
-    if (modalId === 'licenseModal' && initialLicensePlan !== currentLicensePlan) {
-        location.reload();
+    // 現在の期間が新しい上限を超えていたらリセット
+    if (Number(durationSelect.value) > maxDuration) {
+        durationSelect.value = defaultDuration;
     }
-  };
-
-  if (openBtn) openBtn.addEventListener('click', openModal);
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('is-visible')) closeModal();
-  });
 }
-
 /**
  * =================================================
  * ページの初期化とイベントリスナーの登録
  * =================================================
  */
 document.addEventListener('DOMContentLoaded', async () => {
+    // グローバル変数の初期化
+    window.initialLicensePlan = null;
+    window.stripeCheckout = null;
+
     // --- 設定ファイルの読み込み ---
     const { APP_CONFIG, APP_ENV } = await configPromise;
     config = APP_CONFIG;
@@ -1168,20 +1125,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializeApp();
 
     // 2. UIイベントリスナーの登録
-    document.querySelector('.menu-btn').addEventListener('click', function() {
-        this.classList.toggle('is-active');
-        document.querySelector('.nav-menu').classList.toggle('is-active');
-        // メニュー展開時はシェアボタンを非表示にする
-        const shareContainer = document.querySelector('.share-button-container');
-        if (shareContainer) {
-            shareContainer.classList.toggle('is-hidden', this.classList.contains('is-active'));
-        }
-    });
-    setupModal('contactModal', 'openContactFooter'); // トリガーIDを変更
-    setupModal('licenseModal', 'openLicenseForm');
-    setupModal('pricingModal', 'openPricingModal');
-    setupModal('tokushohoModal', 'openTokushohoModal');
-    setupModal('paymentModal', null); // 決済モーダルはボタンでは開かない
 
     // 3. 認証状態の同期
     await syncAuthState(supabase);
@@ -1242,24 +1185,52 @@ document.addEventListener('DOMContentLoaded', async () => {
  * =================================================
  */
 window.addEventListener('message', async (event) => {
+
+    // iframeのsrcを最新の状態で更新する関数
+    const updateIframeSrc = (modalId) => {
+        if (modalId === 'licenseModal') {
+            const licenseKey = localStorage.getItem('licenseKey');
+            const licensePlan = localStorage.getItem('licensePlan');
+            const expiresAt = localStorage.getItem('licenseExpiresAt');
+            const deviceId = localStorage.getItem('deviceId');
+            const iframe = document.getElementById('licenseIframe');
+            if (iframe) iframe.src = `license.html?key=${encodeURIComponent(licenseKey || '')}&plan=${encodeURIComponent(licensePlan || '')}&deviceId=${encodeURIComponent(deviceId || '')}&expiresAt=${encodeURIComponent(expiresAt || '')}`;
+        } else if (modalId === 'pricingModal') {
+            const licensePlan = localStorage.getItem('licensePlan');
+            const iframe = document.getElementById('pricingIframe');
+            if (iframe) iframe.src = `pricing.html?plan=${encodeURIComponent(licensePlan || 'free')}`;
+        }
+    };
+    // モーダルを開く直前にiframeのsrcを更新する
+    if (event.data && event.data.type === 'openModal') {
+        updateIframeSrc(event.data.modalId);
+    }
+
+    // ui.jsからモーダルが閉じた通知を受け取る
+    if (event.data && event.data.type === 'closeModal') {
+        const currentLicensePlan = localStorage.getItem('licensePlan');
+        if (event.data.modalId === 'licenseModal' && window.initialLicensePlan !== currentLicensePlan) {
+            location.reload();
+        }
+    }
+
+    // --- index.js固有のロジック ---
+
     // ここで送信元のオリジンをチェックすることも可能
     // if (event.origin !== 'https://your-domain.com') return;
 
     if (event.data && event.data.type === 'authSuccess') {
-        const oldPlan = localStorage.getItem('licensePlan');
-        const newPlan = event.data.plan;
         // 認証成功のメッセージを受け取ったらライセンス情報を保存
         localStorage.setItem('licenseKey', event.data.key);
-        localStorage.setItem('licensePlan', newPlan);
+        localStorage.setItem('licensePlan', event.data.plan);
         localStorage.setItem('licenseExpiresAt', event.data.expiresAt);
-        document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-user-check"></i>ライセンス情報';
-        if (oldPlan !== newPlan) { // プランが変更された場合
-            localStorage.setItem('justUpgraded', 'true');
-        }
+        localStorage.setItem('justUpgraded', 'true'); // プラン変更フラグ
+
         // Google Analytics イベントトラッキング
         if (typeof gtag === 'function') {
-            gtag('event', 'auth_success', { 'plan': newPlan });
+            gtag('event', 'auth_success', { 'plan': event.data.plan });
         }
+        updateUIForAuthChange(); // UIを動的に更新
     }
     if (event.data && event.data.type === 'startPayment') {
         if (typeof gtag === 'function') {
@@ -1268,13 +1239,9 @@ window.addEventListener('message', async (event) => {
     }
     if (event.data && event.data.type === 'authRevoke') {
         // 認証解除のメッセージを受け取ったらライセンス情報を削除
-        localStorage.removeItem('licenseKey');
-        localStorage.removeItem('licensePlan');
+        localStorage.removeItem('licenseKey'); localStorage.removeItem('licensePlan');
         localStorage.removeItem('licenseExpiresAt');
-        document.getElementById('openLicenseForm').innerHTML = '<i class="fa-solid fa-key"></i>ライセンス認証';
-    }
-    if (event.data === 'openPricingModalFromLicense') {
-        if (window.open_pricingModal) window.open_pricingModal();
+        updateUIForAuthChange(); // UIを動的に更新
     }
     if (event.data && event.data.type === 'resize') {
         // iframeから高さ情報を受け取って調整
@@ -1321,10 +1288,10 @@ window.addEventListener('message', async (event) => {
 
             // [修正] Stripeの初期化には、SupabaseのキーではなくStripeの公開キーを使用する
             const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-            stripeCheckout = await stripe.initEmbeddedCheckout({
+            window.stripeCheckout = await stripe.initEmbeddedCheckout({
               clientSecret: data.clientSecret,
             });
-            stripeCheckout.mount('#checkout');
+            window.stripeCheckout.mount('#checkout');
 
         } catch (e) {
             console.error('Stripe Checkoutセッションの作成に失敗しました:', e);
@@ -1338,10 +1305,6 @@ window.addEventListener('message', async (event) => {
                 pricingIframe.postMessage({ type: 'checkoutSessionFailed' }, '*');
             }
         }
-    }
-    if (event.data && event.data.type === 'openContactModal') {
-        // tokushoho.htmlからお問い合わせモーダルを開く要求
-        if (window.open_contactModal) window.open_contactModal();
     }
     if (event.data && event.data.type && event.data.type.startsWith('invoke:')) {
         // iframe (license.html) からのEdge Function実行リクエストを処理

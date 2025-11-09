@@ -487,95 +487,6 @@ document.querySelectorAll('input[name="weekStartResult"]').forEach(radio => {
   });
 });
 
-function setupModal(modalId, openBtnId) {
-  const modal = document.getElementById(modalId);
-  if (!modal) return;
-  const openBtn = document.getElementById(openBtnId);
-  const closeBtn = modal.querySelector('.modal-close-btn');
-
-  // iframeのsrcを最新の状態で更新する関数
-  window[`open_${modalId}`] = () => {
-    // 他のモーダルが開いていれば閉じる
-    document.querySelectorAll('.modal-overlay.is-visible').forEach(m => m.classList.remove('is-visible'));
-    openModal();
-  };
-
-  const updateIframeSrc = () => {
-    if (modalId === 'licenseModal') {
-      const licenseKey = localStorage.getItem('licenseKey');
-      const licensePlan = currentParams.licensePlan;
-      const deviceId = localStorage.getItem('userId');
-      const iframe = document.getElementById('licenseIframe');
-      iframe.src = `license.html?key=${encodeURIComponent(licenseKey || '')}&plan=${encodeURIComponent(licensePlan || '')}&deviceId=${encodeURIComponent(deviceId || '')}`;
-    } else if (modalId === 'pricingModal') {
-      const licensePlan = localStorage.getItem('licensePlan');
-      const iframe = document.getElementById('pricingIframe');
-      iframe.src = `pricing.html?plan=${encodeURIComponent(licensePlan || 'free')}`;
-    }
-  };
-
-  const openModal = (e) => {
-    if (e) e.preventDefault();
-    if (modalId === 'contactModal') {
-        // お問い合わせモーダルの場合、常にiframeを再生成してクリーンな状態にする
-        const modalBody = modal.querySelector('.modal-body');
-        modalBody.innerHTML = ''; // 古いiframeを削除
-        const newIframe = document.createElement('iframe');
-        newIframe.id = 'contactIframe';
-        newIframe.frameBorder = '0';
-        newIframe.marginHeight = '0';
-        newIframe.marginWidth = '0';
-        const deviceId = localStorage.getItem('deviceId') || 'N/A';
-        const formId = '1FAIpQLSdl1Tjp7hJAyCirrE_2LoL_4DWhMw2OyEHLEWBL-_WlC2rYbg'; // フォーム自体のID
-        const entryId = '1585594458'; // entry ID
-        newIframe.src = `https://docs.google.com/forms/d/e/${formId}/viewform?embedded=true&entry.${entryId}=${encodeURIComponent(deviceId)}`;
-        modalBody.appendChild(newIframe);
-    } else {
-        updateIframeSrc();
-    }
-    modal.classList.add('is-visible');
-  };
-
-  const closeModal = () => {
-    const currentLicensePlan = localStorage.getItem('licensePlan');
-    modal.classList.remove('is-visible');
-
-    // お問い合わせモーダルを閉じた際にiframeを完全に削除し、beforeunload警告を抑制する
-    if (modalId === 'contactModal') {
-        const modalBody = modal.querySelector('.modal-body');
-        modalBody.innerHTML = '<iframe id="contactIframe" src="about:blank" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>';
-    }
-  };
-
-  if (openBtn) openBtn.addEventListener('click', openModal);
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-  });
-
-  // Escapeキーでモーダルを閉じる
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('is-visible')) {
-      closeModal();
-    }
-  });
-}
-
-// 各モーダルをセットアップ
-setupModal('contactModal', 'openContactFooter'); // トリガーIDを変更
-
-setupModal('tokushohoModal', 'openTokushohoModal');
-
-// iframeからのメッセージを受信してモーダルを制御
-window.addEventListener('message', (event) => {
-    // ここで送信元のオリジンをチェックすることも可能
-    // if (event.origin !== 'https://your-domain.com') return;
-    if (event.data && event.data.type === 'openContactModal') {
-        // tokushoho.htmlからお問い合わせモーダルを開く要求
-        if (window.open_contactModal) window.open_contactModal();
-    }
-});
-
 /**
  * メイン処理を実行する非同期関数
  */
@@ -642,8 +553,6 @@ async function main() {
     }
   });
 
-  setupModal('contactModal', 'openContactFooter');
-  setupModal('tokushohoModal', 'openTokushohoModal');
 }
 
 // メイン処理を実行
