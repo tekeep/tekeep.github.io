@@ -92,12 +92,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuBtn = document.querySelector('.menu-btn');
     if (menuBtn) {
         menuBtn.addEventListener('click', function() {
-            this.classList.toggle('is-active');
+            const isActive = this.classList.toggle('is-active');
             document.querySelector('.nav-menu').classList.toggle('is-active');
+            
+            // GA4にハンバーガーメニューを開いたイベントを送信
+            if (isActive && typeof gtag === 'function') {
+                gtag('event', 'open_hamburger_menu', {
+                    'event_category': 'UI Interaction'
+                });
+            }
+
             // メニュー展開時はシェアボタンを非表示にする
             const shareContainer = document.querySelector('.share-button-container');
             if (shareContainer) {
-                shareContainer.classList.toggle('is-hidden', this.classList.contains('is-active'));
+                shareContainer.classList.toggle('is-hidden', isActive);
             }
         });
     }

@@ -1,6 +1,6 @@
 import configPromise from './config.js';
 
-function atMidnight(d){ const nd=new Date(d.getFullYear(),d.getMonth(),d.getDate()); nd.setHours(0,0,0,0); return nd; }
+function atMidnight(d) { const nd = new Date(d.getFullYear(), d.getMonth(), d.getDate()); nd.setHours(0, 0, 0, 0); return nd; }
 let myChart = null; // Chart.jsのインスタンスを保持するグローバル変数
 let currentResultData = null; // GASからの結果を保持するグローバル変数
 let currentParams = null; // 計算時のパラメータを保持するグローバル変数
@@ -9,20 +9,20 @@ let calendarDisplayMode = 'all'; // 'single' or 'all'
 let currentDisplayMonthIndex = 0; // 表示中の月のインデックス
 let holidaysForThisRun = new Set(); // この実行で使われる休日セット
 
-function dateToKey(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}`; }
-function addDays(d,n){ const nd=new Date(d); nd.setDate(nd.getDate()+n); return atMidnight(nd); }
+function dateToKey(d) { const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const da = String(d.getDate()).padStart(2, '0'); return `${y}-${m}-${da}`; }
+function addDays(d, n) { const nd = new Date(d); nd.setDate(nd.getDate() + n); return atMidnight(nd); }
 function addMonths(date, months) {
-    const d = new Date(date);
-    d.setMonth(d.getMonth() + months);
-    // 月末日の考慮: 2/28に1ヶ月足して3/28になるべきだが、JSは3/31の1ヶ月後を5/1としてしまうことがあるため調整
-    if (d.getDate() !== date.getDate()) {
-        d.setDate(0); // 前の月の最終日を設定
-    }
-    return d;
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + months);
+  // 月末日の考慮: 2/28に1ヶ月足して3/28になるべきだが、JSは3/31の1ヶ月後を5/1としてしまうことがあるため調整
+  if (d.getDate() !== date.getDate()) {
+    d.setDate(0); // 前の月の最終日を設定
+  }
+  return d;
 }
-function formatMD(d){ return `${d.getMonth()+1}/${d.getDate()}`; }
+function formatMD(d) { return `${d.getMonth() + 1}/${d.getDate()}`; }
 
-function renderResult(response, params){
+function renderResult(response, params) {
   // 結果とパラメータをグローバル変数に保存
   currentResultData = response;
   currentParams = params;
@@ -39,12 +39,12 @@ function renderResult(response, params){
   }).filter(Boolean);
 
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
-  let listHTML="";
+  let listHTML = "";
   purchaseItems.forEach(item => {
-    const dateStr = `${item.date.getFullYear()}/${String(item.date.getMonth()+1).padStart(2, '0')}/${String(item.date.getDate()).padStart(2, '0')} (${weekDays[item.date.getDay()]})`;
+    const dateStr = `${item.date.getFullYear()}/${String(item.date.getMonth() + 1).padStart(2, '0')}/${String(item.date.getDate()).padStart(2, '0')} (${weekDays[item.date.getDay()]})`;
     listHTML += `<li data-date="${dateToKey(item.date)}" data-type="${item.type}" class="calendar-link-item"><span>${dateStr}</span><strong style="color: var(--accent-color); ">[${item.type}]</strong></li>`;
   });
-  document.getElementById("purchaseList").innerHTML=listHTML;
+  document.getElementById("purchaseList").innerHTML = listHTML;
 
   // グラフ描画
   drawChart();
@@ -58,7 +58,7 @@ function renderResult(response, params){
   // 有料プランの場合は広告を非表示にする
   const adContainer = document.getElementById('ad-container-result');
   if (params.licensePlan && adContainer) {
-      adContainer.style.display = 'none';
+    adContainer.style.display = 'none';
   }
 }
 
@@ -75,13 +75,13 @@ function drawChart() {
     else if (currentParams.monthlyPass > 0) baselineLabel = '1ヶ月定期で更新';
   }
   if (!baselineLabel) {
-      baselineLabel = 'ベースラインプラン';
+    baselineLabel = 'ベースラインプラン';
   }
-  
+
   // comparisonCostsオブジェクトのキーを動的ラベルに統一する
   if (baselineLabel !== 'ベースラインプラン' && comparisonCosts['ベースラインプラン'] !== undefined) {
-      comparisonCosts[baselineLabel] = comparisonCosts['ベースラインプラン'];
-      delete comparisonCosts['ベースラインプラン'];
+    comparisonCosts[baselineLabel] = comparisonCosts['ベースラインプラン'];
+    delete comparisonCosts['ベースラインプラン'];
   }
   const baselineCostValue = comparisonCosts[baselineLabel];
 
@@ -128,30 +128,30 @@ function drawChart() {
       <strong>スタンダードプラン (480円/年, 税込)</strong> にアップグレードすると、シミュレーション期間が<strong>最大12ヶ月</strong>に延長されます。より長期のシミュレーションで、さらなる節約を目指しませんか？
     `;
   }
-  
-  const ctx=document.getElementById('savingsChart').getContext('2d');
+
+  const ctx = document.getElementById('savingsChart').getContext('2d');
   // 既存のチャートがあれば破棄する
   if (myChart) {
     myChart.destroy();
   }
 
   Chart.register(ChartDataLabels); // データラベルプラグインを登録
-  myChart = new Chart(ctx,{
+  myChart = new Chart(ctx, {
     type: 'bar',
-    data:{
+    data: {
       labels: costs.map(c => c.label),
-      datasets:[{
+      datasets: [{
         label: '金額(円)',
         data: costs.map(c => c.cost),
         backgroundColor: costs.map(c => c.color),
         barPercentage: 0.6, // バーの太さをカテゴリ幅の60%に設定
       }]
     },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
       indexAxis: 'y',
-      plugins:{
+      plugins: {
         datalabels: {
           anchor: 'end', // ラベルをバーの終端（右側）にアンカー
           align: 'start', // ラベルをアンカーポイントの左側に配置
@@ -165,13 +165,13 @@ function drawChart() {
           formatter: (value) => value.toLocaleString() + '円' // 表示形式をカンマ区切り＋円にする
         },
         legend: { display: false }, // 凡例を非表示にする
-        tooltip: { callbacks: { label: (context) => `${context.label}: ${context.raw.toLocaleString()}円` } } 
+        tooltip: { callbacks: { label: (context) => `${context.label}: ${context.raw.toLocaleString()}円` } }
       },
-      scales:{ 
-        x: { 
-          beginAtZero:true,
-          title: { 
-            display: true, 
+      scales: {
+        x: {
+          beginAtZero: true,
+          title: {
+            display: true,
             text: '金額 (円)',
           }
         },
@@ -194,10 +194,10 @@ function drawChart() {
  * @returns {number} 週番号
  */
 const getWeekNumber = (d, weekStartDay) => {
-    const date = d.getDate();
-    const day = d.getDay();
-    const firstDayOfMonth = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
-    return Math.ceil((date + (firstDayOfMonth - weekStartDay + 7) % 7) / 7);
+  const date = d.getDate();
+  const day = d.getDay();
+  const firstDayOfMonth = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
+  return Math.ceil((date + (firstDayOfMonth - weekStartDay + 7) % 7) / 7);
 };
 
 /**
@@ -208,13 +208,13 @@ const getWeekNumber = (d, weekStartDay) => {
  * @returns {boolean} 休日であればtrue
 */
 function isHolidayBasedOnParams(dateKey, dateObj, params) {
-    if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return false;
+  if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return false;
 
-    // localStorage経由で渡された表示用の休日リストを使用
-    const calendarHolidaysYmdStr = params.calendarHolidays || '';
-    // "yyyy-MM-dd"形式のカンマ区切り文字列を直接Setに変換する
-    const holidaysSet = new Set(calendarHolidaysYmdStr.split(','));
-    return holidaysSet.has(dateKey);
+  // localStorage経由で渡された表示用の休日リストを使用
+  const calendarHolidaysYmdStr = params.calendarHolidays || '';
+  // "yyyy-MM-dd"形式のカンマ区切り文字列を直接Setに変換する
+  const holidaysSet = new Set(calendarHolidaysYmdStr.split(','));
+  return holidaysSet.has(dateKey);
 }
 
 function drawCalendar() {
@@ -266,7 +266,7 @@ function drawCalendar() {
     }
     const year = d.getFullYear();
     const month = d.getMonth();
-    
+
     const monthContainer = document.createElement('div');
     monthContainer.className = 'month-container';
     monthContainer.innerHTML = `
@@ -279,7 +279,7 @@ function drawCalendar() {
     // 月の最初と最後の日を取得
     const firstDateOfMonth = new Date(year, month, 1);
     const lastDateOfMonth = new Date(year, month + 1, 0);
-    
+
     // カレンダーの開始日を計算（月の1日が始まる前の日曜日または月曜日）
     const calendarStartDate = addDays(firstDateOfMonth, -((firstDateOfMonth.getDay() - weekStartDay + 7) % 7));
 
@@ -333,7 +333,7 @@ function drawCalendar() {
   }
 }
 
-function toggleAccordion(){
+function toggleAccordion() {
   const content = document.getElementById("calendarContainer");
   const isOpening = content.style.display !== "block";
   content.style.display = isOpening ? "block" : "none";
@@ -422,18 +422,7 @@ async function main() {
   window.APP_CONFIG = APP_CONFIG; // グローバルにも設定
   window.APP_ENV = APP_ENV;
 
-  // --- 2. Google Analyticsの動的読み込み ---
-  if (APP_CONFIG.gaMeasurementId) {
-      const gtagScript = document.createElement('script');
-      gtagScript.async = true;
-      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${APP_CONFIG.gaMeasurementId}`;
-      document.head.appendChild(gtagScript);
-      window.dataLayer = window.dataLayer || [];
-      window.gtag('js', new Date());
-      window.gtag('config', APP_CONFIG.gaMeasurementId);
-  }
-
-  // --- 3. LocalStorageから結果データを取得して描画 ---
+  // --- 2. LocalStorageから結果データを取得して描画 ---
   const resultDataString = localStorage.getItem('simulationResultData');
   if (resultDataString) {
     const parsedData = JSON.parse(resultDataString);
@@ -452,7 +441,7 @@ async function main() {
     document.getElementById('errorScreen').style.display = 'block';
   }
 
-  // --- 4. UIの初期化とイベントリスナーの登録 (旧DOMContentLoaded内の処理) ---
+  // --- 3. UIの初期化とイベントリスナーの登録 (旧DOMContentLoaded内の処理) ---
   const savedWeekStart = localStorage.getItem('weekStartPreference');
   if (savedWeekStart) {
     const radio = document.querySelector(`input[name="weekStartResult"][value="${savedWeekStart}"]`);
@@ -473,7 +462,7 @@ async function main() {
       const simEndDate = addDays(addMonths(new Date(currentParams.startDate), currentParams.durationInMonths), -1);
       const nextMonthDate = addMonths(new Date(currentParams.startDate), currentDisplayMonthIndex + 1);
       if (nextMonthDate.getFullYear() < simEndDate.getFullYear() ||
-          (nextMonthDate.getFullYear() === simEndDate.getFullYear() && nextMonthDate.getMonth() <= simEndDate.getMonth())) {
+        (nextMonthDate.getFullYear() === simEndDate.getFullYear() && nextMonthDate.getMonth() <= simEndDate.getMonth())) {
         currentDisplayMonthIndex++;
         drawCalendar();
       }
