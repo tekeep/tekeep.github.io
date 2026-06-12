@@ -1,0 +1,25 @@
+---
+export interface Props {
+  slug: string;
+  title: string;
+  description: string;
+  image?: string;
+  publishedAt?: string;
+}
+
+const { slug, title, description, image, publishedAt } = Astro.props as Props;
+
+const d = publishedAt ? new Date(publishedAt) : new Date();
+const date = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+---
+<article class="card" style="margin-bottom: 16px;">
+  <h2 class="card-title" style="margin-bottom: 2px;">
+    <a href={`/blog/${slug}/`}>{title}</a>
+  </h2>
+  <div class="card-meta">
+    <i class="fa-regular fa-calendar-days" style="margin-right: 4px;"></i> {date}
+  </div>
+  {description && (
+    <p class="card-description">{description}</p>
+  )}
+</article>

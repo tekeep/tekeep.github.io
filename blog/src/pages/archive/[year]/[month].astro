@@ -1,0 +1,63 @@
+---
+import Layout from '../../../components/Layout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import Sidebar from '../../../components/Sidebar.astro';
+import { getCollection } from 'astro:content';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  const publishedPosts = posts.filter(p => new Date(p.data.publishedAt) <= new Date());
+  
+  const archiveMap = new Map();
+  publishedPosts.forEach(post => {
+    const d = new Date(post.data.publishedAt);
+    if (isNaN(d.getTime())) return;
+    const year = d.getFullYear().toString();
+    const month = (d.getMonth() + 1).toString();
+    const key = `${year}-${month}`;
+    if (!archiveMap.has(key)) {
+      archiveMap.set(key, { year, month, posts: [] });
+    }
+    archiveMap.get(key).posts.push(post);
+  });
+  
+  return Array.from(archiveMap.values()).map(({ year, month, posts }) => ({
+    params: { year, month },
+    props: { posts },
+  }));
+}
+
+const { year, month } = Astro.params;
+const { posts } = Astro.props;
+
+const sortedPosts = posts.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
+---
+<Layout title={`${year}年${month}月 | TeKeep! ブログ`} description={`${year}年${month}月の記事一覧です。`}>
+  <Header />
+  <main class="container">
+    <div class="blog-layout">
+      <div class="main-content">
+        <div class="page-header-card">
+          <h1><i class="fa-solid fa-box-archive" style="margin-right: 8px;"></i>{year}年{month}月の記事一覧</h1>
+        </div>
+        <section>
+          {sortedPosts.map(post => (
+            <ArticleCard
+              slug={post.id.split('/').pop()}
+              title={post.data.title}
+              description={post.data.description}
+              image={post.data.image}
+              publishedAt={post.data.publishedAt}
+            />
+          ))}
+        </section>
+      </div>
+      <Sidebar />
+    </div>
+  </main>
+  <Footer />
+</Layout>

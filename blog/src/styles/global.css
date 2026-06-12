@@ -1,0 +1,254 @@
+:root {
+  --primary-color: #00c4cc;
+  /* 明るいティール系 */
+  --primary-hover-color: #00a9b0;
+  --accent-color: #f97316;
+  /* オレンジ */
+  --background-color: #f8f9fa;
+  --text-color: #0f3854;
+  --light-gray: #e9ecef;
+  --border-color: #ced4da;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Meiryo UI", sans-serif;
+  font-feature-settings: "palt";
+  color: var(--text-color);
+  background-color: var(--background-color);
+  margin: 0;
+  line-height: 1.6;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+a {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.blog-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .blog-layout {
+    grid-template-columns: 1fr 260px;
+  }
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  margin-bottom: 24px;
+  display: block;
+  /* allow text selection inside cards */
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  user-drag: none;
+  -webkit-user-drag: none;
+}
+
+.sidebar-list a {
+  color: var(--text-color);
+  font-weight: normal;
+  display: block;
+  line-height: 1.4;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  user-drag: none;
+  -webkit-user-drag: none;
+}
+
+.card-title {
+  color: var(--text-color);
+  font-size: 1.2rem;
+  margin-top: 0;
+  margin-bottom: 8px;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+.card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-title a:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.card-meta {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 12px;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+.card-description {
+  font-size: 0.95rem;
+  color: #495057;
+  margin: 0;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+.sidebar-section {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 8px 20px;
+  margin-bottom: 24px;
+}
+
+.sidebar-title {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 8px;
+  border-bottom: 2px solid var(--light-gray);
+  padding-bottom: 8px;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-list li {
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+.sidebar-list li:last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-list a:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.archive-year {
+  margin-bottom: 12px;
+}
+
+.sidebar-list i,
+.sidebar-list .fa,
+.sidebar-list .icon {
+  font-size: 1rem;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+
+.archive-year summary::-webkit-details-marker {
+  display: none;
+}
+
+.archive-year summary::before {
+  content: '\25B6';
+  font-size: 1rem;
+  margin-right: 8px;
+  color: var(--primary-color);
+  transition: transform 0.2s;
+}
+
+.archive-year[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.archive-months {
+  margin-top: 8px;
+  padding-left: 24px;
+}
+
+/* Main Column Header Card */
+.page-header-card {
+  background-color: #C1EEE8;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.page-header-card h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+/* Article Page Main Content Card */
+.post {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.post-title {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.post-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+/* Force text selection in main column */
+main,
+.hero-header {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Remove bottom margin from last items to prevent accumulation before footer */
+.card:last-child,
+.post:last-child,
+.sidebar-section:last-child {
+  margin-bottom: 0;
+}
+
+.hero-img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+
+main,
+.post,
+.post * {
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  user-drag: none;
+  -webkit-user-drag: none;
+}

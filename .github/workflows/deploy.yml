@@ -1,0 +1,51 @@
+name: Deploy LP and Blog to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+# GitHub Pages への直接デプロイに必要な権限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: ./blog
+        run: npm ci
+
+      - name: Build Astro blog
+        working-directory: ./blog
+        run: npm run build
+
+      - name: Prepare deployment directory
+        run: |
+          mkdir _site
+          # LPのファイル群を_siteにコピー (blogディレクトリやGit関連は除く)
+          rsync -av --exclude='_site' --exclude='.git' --exclude='.github' --exclude='blog' --exclude='TeKeepDevelopData' ./ _site/
+          # ビルド済みのブログを _site/blog にコピー
+          mkdir -p _site/blog
+          cp -r blog/dist/* _site/blog/
+          # Jekyllによるエラーを回避
+          touch _site/.nojekyll
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

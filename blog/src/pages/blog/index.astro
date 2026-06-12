@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../components/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import Sidebar from '../../components/Sidebar.astro';
+
+const allPosts = await getCollection('blog');
+// 現在日時以前に公開された記事のみ対象
+const now = new Date();
+const posts = allPosts.filter(p => new Date(p.data.publishedAt) <= now);
+---
+<Layout title="ブログ" description="TeKeep の最新記事一覧">
+  <header><Header /></header>
+  <main class="container blog-layout">
+    <div class="main-content">
+      <h1 class="title">最新記事</h1>
+      <section class="article-list">
+        {posts
+          .sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime())
+          .map(post => (
+            <ArticleCard
+              slug={post.id}
+              title={post.data.title}
+              description={post.data.description}
+              image={post.data.image}
+              publishedAt={post.data.publishedAt}
+            />
+          ))}
+      </section>
+    </div>
+    <aside class="sidebar-wrapper"><Sidebar /></aside>
+  </main>
+  <footer><Footer /></footer>
+</Layout>

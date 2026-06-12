@@ -1,0 +1,46 @@
+---
+import Layout from '../components/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getCollection, getEntry, render } from 'astro:content';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({ params: { slug: post.id.split('/').pop() } }));
+}
+
+const { slug } = Astro.params;
+// Debug removed for production
+const posts = await getCollection('blog');
+const post = posts.find(p => p.id.split('/').pop() === slug);
+if (!post) {
+  throw new Error('Post not found');
+}
+const { title, description, publishedAt, image } = post.data;
+const { Content } = await render(post);
+
+const d = new Date(publishedAt);
+const formattedDate = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+---
+<Layout title={title} description={description}>
+  <Header />
+  <main class="container blog-layout">
+  <article class="post">
+    <h1 class="post-title">{title}</h1>
+    <p class="post-meta"><i class="fa-regular fa-calendar-days" style="margin-right: 4px;"></i> {formattedDate}</p>
+    <Content />
+    <div class="cta-banner" style="margin-top: 16px; text-align: center;">
+      <a href="https://tekeep.com/">
+        <img src="/blog/images/cta-banner.webp" alt="TeKeep! の CTA バナー" style="max-width: 100%; height: auto;" />
+      </a>
+    </div>
+    
+
+  </article>
+  <Sidebar />
+</main>
+  <footer><Footer /></footer>
+</Layout>

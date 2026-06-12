@@ -1,0 +1,17 @@
+{
+  "name": "tekeep-blog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node ./scripts/generate-sitemap.mjs",
+    "preview": "astro preview",
+    "sitemap": "node ./scripts/generate-sitemap.mjs"
+  },
+  "devDependencies": {
+    "astro": "latest",
+    "typescript": "^5.4.2",
+    "sharp": "^0.33.3"
+  }
+}

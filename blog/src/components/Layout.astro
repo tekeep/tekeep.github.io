@@ -1,0 +1,33 @@
+---
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+}
+const { title, description, image } = Astro.props;
+const site = "https://tekeep.com/blog/";
+const siteUrl = "https://tekeep.com";
+const ogImage = image ? (image.startsWith('http') ? image : `${siteUrl}${image}`) : undefined;
+---
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <!-- OGP meta for social sharing -->
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={site} />
+    <meta property="og:type" content="website" />
+  </head>
+  <body>
+
+<slot />
+  </body>
+</html>

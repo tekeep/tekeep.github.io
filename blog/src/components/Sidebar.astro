@@ -1,0 +1,140 @@
+---
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+const now = new Date();
+const publishedPosts = allPosts.filter(p => new Date(p.data.publishedAt) <= now);
+
+// Categories
+const categoryMap = new Map();
+publishedPosts.forEach(post => {
+  const cat = post.data.category || '未分類';
+  categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
+});
+const categories = Array.from(categoryMap.entries())
+  .map(([name, count]) => ({ name, count }))
+  .sort((a, b) => b.count - a.count);
+
+// Latest posts
+const latestPosts = [...publishedPosts]
+  .sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime())
+  .slice(0, 10);
+
+// Archives
+const archiveMap = new Map();
+publishedPosts.forEach(post => {
+  const date = new Date(post.data.publishedAt);
+  if (isNaN(date.getTime())) return;
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  if (!archiveMap.has(year)) {
+    archiveMap.set(year, { year, count: 0, monthMap: new Map() });
+  }
+  const y = archiveMap.get(year)!;
+  y.count++;
+  y.monthMap.set(month, (y.monthMap.get(month) || 0) + 1);
+});
+const archives = Array.from(archiveMap.values())
+  .map(y => ({
+    year: y.year,
+    count: y.count,
+    months: Array.from(y.monthMap.entries())
+      .map(([month, count]) => ({ month, count }))
+      .sort((a, b) => b.month - a.month)
+  }))
+  .sort((a, b) => b.year - a.year);
+---
+<aside class="sidebar">
+  <!-- Category -->
+  <div class="sidebar-section">
+    <h3 class="sidebar-title">カテゴリー</h3>
+    <ul class="sidebar-list">
+      {categories.map(cat => (
+        <li>
+          <a href={`/blog/category/${encodeURIComponent(cat.name)}`}>{cat.name} ({cat.count})</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <!-- Latest -->
+  <div class="sidebar-section">
+    <h3 class="sidebar-title">最新記事</h3>
+    <ul class="sidebar-list">
+      {latestPosts.map(post => (
+        <li>
+          <a href={`/blog/${post.id.split('/').pop()}`}>{post.data.title}</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <!-- Archive -->
+  <div class="sidebar-section">
+    <h3 class="sidebar-title">月別アーカイブ</h3>
+    <div class="archive-list">
+      {archives.map((archive, index) => (
+        <div class="archive-item">
+          <details class="archive-year" open={index === 0}>
+            <summary>
+              <span class="year-title">{archive.year}年 ({archive.count})</span>
+            </summary>
+            <ul class="sidebar-list archive-months">
+              {archive.months.map(m => (
+                <li>
+                  <a href={`/blog/archive/${archive.year}/${m.month}`}>{archive.year} / {m.month} ({m.count})</a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </div>
+      ))}
+    </div>
+  </div>
+</aside>
+
+<style>
+  .sidebar-section {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    padding: 12px 20px;
+    margin-bottom: 24px;
+  }
+  .sidebar-title {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 8px;
+    border-bottom: 2px solid var(--light-gray);
+    padding-bottom: 8px;
+  }
+  .sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar-list li {
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+  }
+  .sidebar-list li:last-child {
+    margin-bottom: 0;
+  }
+  .sidebar-list a {
+    color: var(--text-color);
+    font-weight: normal;
+    display: block;
+    line-height: 1.4;
+  }
+  .sidebar-list a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+  }
+  .archive-year {margin-bottom: 12px;}
+  .archive-year summary {cursor: pointer; font-weight: 600; color: var(--text-color); display: flex; align-items: center; user-select: none;}
+  .archive-year summary::-webkit-details-marker {display: none;}
+  .archive-year summary::before {content: '\25B6'; font-size: 0.8rem; margin-right: 8px; color: var(--primary-color); transition: transform 0.2s;}
+  .archive-year[open] summary::before {transform: rotate(90deg);}
+  .archive-months {margin-top: 8px; padding-left: 24px;}
+</style>
