@@ -15,16 +15,37 @@ function buildSitemap() {
   }
   
   const posts = files.filter(f => f.endsWith('.md') || f.endsWith('.mdx'));
-  const urls = posts.map(f => {
-    // filename without extension is the slug
+  
+  const today = new Date().toISOString().split('T')[0];
+  
+  const urlEntries = posts.map(f => {
     const slug = f.replace(/\.mdx?$/, '');
-    return `${baseUrl}${slug}/`;
+    const url = `${baseUrl}${slug}/`;
+    
+    // Markdownファイルから updatedAt または publishedAt を抽出
+    const content = fs.readFileSync(path.join(contentDir, f), 'utf-8');
+    const updateMatch = content.match(/updatedAt:\s*"?([\d-]+)"?/);
+    const publishMatch = content.match(/publishedAt:\s*"?([\d-]+)"?/);
+    
+    let lastmod = '';
+    if (updateMatch && updateMatch[1]) {
+      lastmod = updateMatch[1];
+    } else if (publishMatch && publishMatch[1]) {
+      lastmod = publishMatch[1];
+    }
+    
+    return { url, lastmod };
   });
   
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${baseUrl}</loc></url>
-  ${urls.map(u => `<url><loc>${u}</loc></url>`).join('\n  ')}
+  <url>
+    <loc>${baseUrl}</loc>
+    <lastmod>${today}</lastmod>
+  </url>
+${urlEntries.map(entry => `  <url>
+    <loc>${entry.url}</loc>${entry.lastmod ? `\n    <lastmod>${entry.lastmod}</lastmod>` : ''}
+  </url>`).join('\n')}
 </urlset>`;
   
   const outPath = path.resolve('public', 'sitemap.xml');
