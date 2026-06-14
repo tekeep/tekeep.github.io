@@ -7,9 +7,9 @@ export interface Props {
   image?: string;
 }
 const { title, description, image } = Astro.props;
-const site = "https://tekeep.com/blog/";
 const siteUrl = "https://tekeep.com";
 const ogImage = image ? (image.startsWith('http') ? image : `${siteUrl}${image}`) : undefined;
+const currentUrl = new URL(Astro.url.pathname, siteUrl).href;
 ---
 <!DOCTYPE html>
 <html lang="ja">
@@ -23,8 +23,14 @@ const ogImage = image ? (image.startsWith('http') ? image : `${siteUrl}${image}`
     {ogImage && <meta property="og:image" content={ogImage} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={site} />
-    <meta property="og:type" content="website" />
+    <meta property="og:url" content={currentUrl} />
+    <meta property="og:type" content="article" />
+    
+    <!-- Twitter Card data -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
   </head>
   <body>
 
