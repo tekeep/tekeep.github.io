@@ -31,6 +31,19 @@ const currentUrl = new URL(Astro.url.pathname, siteUrl).href;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    <!-- Google Analytics (本番環境のみ) -->
+    {import.meta.env.PROD && (
+      <>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y15FLWQ7X1"></script>
+        <script>
+          {`window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-Y15FLWQ7X1');`}
+        </script>
+      </>
+    )}
   </head>
   <body>
 
