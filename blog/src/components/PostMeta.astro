@@ -1,0 +1,20 @@
+---
+import { formatDate } from '../utils/date';
+
+export interface Props {
+  publishedAt?: string;
+  updatedAt?: string;
+}
+
+const { publishedAt, updatedAt } = Astro.props as Props;
+
+const formattedPublished = formatDate(publishedAt);
+const formattedUpdated = formatDate(updatedAt);
+const showUpdated = formattedUpdated && formattedUpdated !== formattedPublished;
+---
+<p class="post-meta">
+  <span><i class="fa-regular fa-calendar-days" style="margin-right: 4px;"></i> {formattedPublished}</span>
+  {showUpdated && (
+    <span style="margin-left: 12px;"><i class="fa-solid fa-arrows-rotate" style="margin-right: 4px;"></i> {formattedUpdated}</span>
+  )}
+</p>

@@ -26,6 +26,7 @@ const posts = allPosts.filter(p => new Date(p.data.publishedAt) <= now);
               description={post.data.description}
               image={post.data.image}
               publishedAt={post.data.publishedAt}
+              updatedAt={post.data.updatedAt}
             />
           ))}
       </section>

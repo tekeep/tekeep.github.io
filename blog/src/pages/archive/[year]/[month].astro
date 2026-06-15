@@ -52,6 +52,7 @@ const sortedPosts = posts.sort((a, b) => new Date(b.data.publishedAt).getTime() 
               description={post.data.description}
               image={post.data.image}
               publishedAt={post.data.publishedAt}
+              updatedAt={post.data.updatedAt}
             />
           ))}
         </section>
