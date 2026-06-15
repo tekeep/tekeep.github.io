@@ -3,6 +3,9 @@ name: Deploy LP and Blog to GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    # 毎日 UTC 16:00 = 日本時間(JST) 01:00 に実行
+    - cron: '0 16 * * *'
 
 # GitHub Pages への直接デプロイに必要な権限
 permissions:
@@ -13,6 +16,8 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      TZ: 'Asia/Tokyo' # システム日付の判定を日本時間に固定する
 
     steps:
       - uses: actions/checkout@v4

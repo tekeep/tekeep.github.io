@@ -16,7 +16,8 @@ function buildSitemap() {
   
   const posts = files.filter(f => f.endsWith('.md') || f.endsWith('.mdx'));
   
-  const today = new Date().toISOString().split('T')[0];
+  // 日本時間（JST）基準で今日の日付を取得（UTC比較によるズレを防ぐ）
+  const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(new Date());
   
   const urlEntries = posts.map(f => {
     const slug = f.replace(/\.mdx?$/, '');
@@ -27,14 +28,21 @@ function buildSitemap() {
     const updateMatch = content.match(/updatedAt:\s*"?([\d-]+)"?/);
     const publishMatch = content.match(/publishedAt:\s*"?([\d-]+)"?/);
     
+    let publishedAt = publishMatch && publishMatch[1] ? publishMatch[1] : '';
     let lastmod = '';
     if (updateMatch && updateMatch[1]) {
       lastmod = updateMatch[1];
-    } else if (publishMatch && publishMatch[1]) {
-      lastmod = publishMatch[1];
+    } else if (publishedAt) {
+      lastmod = publishedAt;
     }
     
-    return { url, lastmod };
+    return { url, lastmod, publishedAt };
+  }).filter(entry => {
+    // 未来の日付（公開予約）の記事はサイトマップから除外する（日本時間基準で文字列比較）
+    if (entry.publishedAt) {
+      return entry.publishedAt <= today;
+    }
+    return true; // 日付がない場合はとりあえず含める
   });
   
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
