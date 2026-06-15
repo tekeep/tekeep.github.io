@@ -2,9 +2,9 @@
 import Layout from '../../components/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import ArticleCard from '../../components/ArticleCard.astro';
-import Sidebar from '../../components/Sidebar.astro';
+import PostListLayout from '../../components/PostListLayout.astro';
 import { getCollection } from 'astro:content';
+import { sortPosts } from '../../utils/posts';
 
 export const prerender = true;
 
@@ -14,38 +14,15 @@ export async function getStaticPaths() {
   const categories = [...new Set(publishedPosts.map(p => p.data.category || '未分類'))];
   return categories.map(category => ({
     params: { category },
-    props: { posts: publishedPosts.filter(p => (p.data.category || '未分類') === category) },
+    props: { posts: sortPosts(publishedPosts.filter(p => (p.data.category || '未分類') === category)) },
   }));
 }
 
 const { category } = Astro.params;
 const { posts } = Astro.props;
-
-const sortedPosts = posts.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
 ---
 <Layout title={`${category} | TeKeep! ブログ`} description={`${category}カテゴリーの記事一覧です。`}>
   <Header />
-  <main class="container">
-    <div class="blog-layout">
-      <div class="main-content">
-        <div class="page-header-card">
-          <h1><i class="fa-solid fa-folder-open" style="margin-right: 8px;"></i>「{category}」の記事一覧</h1>
-        </div>
-        <section>
-          {sortedPosts.map(post => (
-            <ArticleCard
-              slug={post.id.split('/').pop()}
-              title={post.data.title}
-              description={post.data.description}
-              image={post.data.image}
-              publishedAt={post.data.publishedAt}
-              updatedAt={post.data.updatedAt}
-            />
-          ))}
-        </section>
-      </div>
-      <Sidebar />
-    </div>
-  </main>
+  <PostListLayout posts={posts} heading={`「${category}」の記事一覧`} icon="fa-solid fa-folder-open" />
   <Footer />
 </Layout>

@@ -2,43 +2,16 @@
 import Layout from '../components/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import ArticleCard from '../components/ArticleCard.astro';
-import Sidebar from '../components/Sidebar.astro';
+import PostListLayout from '../components/PostListLayout.astro';
 import { getCollection } from 'astro:content';
+import { sortPosts } from '../utils/posts';
 
-// 最新5記事取得
-const posts = await getCollection('blog');
-// 現在日時以前に公開された記事のみ対象
+const allPosts = await getCollection('blog');
 const now = new Date();
-const publishedPosts = posts.filter(p => new Date(p.data.publishedAt) <= now);
-const latest = publishedPosts
-  .sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime())
-  .slice(0, 5);
+const posts = sortPosts(allPosts.filter(p => new Date(p.data.publishedAt) <= now)).slice(0, 5);
 ---
 <Layout title="TeKeep! ブログ" description="TeKeep の最新記事とカテゴリをご紹介します。">
   <Header />
-  <main class="container">
-
-    <div class="blog-layout">
-      <div class="main-content">
-        <div class="page-header-card">
-          <h1><i class="fa-solid fa-newspaper" style="margin-right: 8px;"></i>最新記事</h1>
-        </div>
-        <section>
-          {latest.map(post => (
-            <ArticleCard
-              slug={post.id.split('/').pop()}
-              title={post.data.title}
-              description={post.data.description}
-              image={post.data.image}
-              publishedAt={post.data.publishedAt}
-              updatedAt={post.data.updatedAt}
-            />
-          ))}
-        </section>
-      </div>
-      <Sidebar />
-    </div>
-  </main>
+  <PostListLayout posts={posts} heading="最新記事" icon="fa-solid fa-newspaper" />
   <Footer />
 </Layout>

@@ -1,0 +1,38 @@
+---
+import ArticleCard from './ArticleCard.astro';
+import Sidebar from './Sidebar.astro';
+import type { CollectionEntry } from 'astro:content';
+
+export interface Props {
+  posts: CollectionEntry<'blog'>[];
+  heading: string;
+  icon?: string;
+}
+
+const { posts, heading, icon } = Astro.props;
+---
+<main class="container">
+  <div class="blog-layout">
+    <div class="main-content">
+      <div class="page-header-card">
+        <h1>
+          {icon && <i class={icon} style="margin-right: 8px;"></i>}
+          {heading}
+        </h1>
+      </div>
+      <section>
+        {posts.map(post => (
+          <ArticleCard
+            slug={post.id.split('/').pop()}
+            title={post.data.title}
+            description={post.data.description}
+            image={post.data.image}
+            publishedAt={post.data.publishedAt}
+            updatedAt={post.data.updatedAt}
+          />
+        ))}
+      </section>
+    </div>
+    <Sidebar />
+  </div>
+</main>

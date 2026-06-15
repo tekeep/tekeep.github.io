@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { sortPosts } from '../utils/posts';
 
 const allPosts = await getCollection('blog');
 const now = new Date();
@@ -16,9 +17,7 @@ const categories = Array.from(categoryMap.entries())
   .sort((a, b) => b.count - a.count);
 
 // Latest posts
-const latestPosts = [...publishedPosts]
-  .sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime())
-  .slice(0, 10);
+const latestPosts = sortPosts(publishedPosts).slice(0, 10);
 
 // Archives
 const archiveMap = new Map();
