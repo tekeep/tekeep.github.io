@@ -10,16 +10,117 @@ export interface Props {
   updatedAt?: string;
 }
 
-const { slug, title, description, publishedAt, updatedAt } = Astro.props as Props;
+const { slug, title, description, image, publishedAt, updatedAt } = Astro.props as Props;
+const articleUrl = `/blog/${slug}/`;
 ---
-<article class="card" style="margin-bottom: 16px;">
-  <h2 class="card-title" style="margin-bottom: 2px;">
-    <a href={`/blog/${slug}/`}>{title}</a>
-  </h2>
-  <div class="card-meta">
-    <PostMeta publishedAt={publishedAt} updatedAt={updatedAt} />
+<article class="card">
+  <a href={articleUrl} class="card-thumbnail-link" aria-label={title}>
+    {image
+      ? <img src={image} alt={title} class="card-thumbnail" loading="lazy" />
+      : <div class="card-thumbnail card-thumbnail--placeholder"><i class="fa-solid fa-newspaper"></i></div>
+    }
+  </a>
+  <div class="card-body">
+    <h2 class="card-title">
+      <a href={articleUrl}>{title}</a>
+    </h2>
+    <div class="card-meta">
+      <PostMeta publishedAt={publishedAt} updatedAt={updatedAt} />
+    </div>
+    {description && (
+      <p class="card-description">{description}</p>
+    )}
   </div>
-  {description && (
-    <p class="card-description">{description}</p>
-  )}
 </article>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  }
+
+  /* サムネイル部分 */
+  .card-thumbnail-link {
+    flex-shrink: 0;
+    display: block;
+    width: 200px;
+  }
+  .card-thumbnail {
+    width: 200px;
+    height: auto;
+    display: block;
+  }
+  .card-thumbnail--placeholder {
+    width: 200px;
+    height: 130px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #bbb;
+    font-size: 2rem;
+  }
+
+  /* テキスト部分 */
+  .card-body {
+    flex: 1;
+    padding: 0 16px 0 0;
+    min-width: 0;
+  }
+  .card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 6px !important;
+    line-height: 1.4;
+  }
+  .card-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .card-title a:hover {
+    color: var(--primary-color, #4a90d9);
+    text-decoration: underline;
+  }
+  .card-meta {
+    margin-bottom: 6px;
+  }
+  .card-meta :global(.post-meta) {
+    margin: 0 !important;
+    line-height: 1.4;
+  }
+  .card-description {
+    font-size: 0.875rem;
+    color: #555;
+    margin: 0 !important;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* スマホ対応 */
+  @media (max-width: 480px) {
+    .card-thumbnail-link {
+      width: 120px;
+    }
+    .card-thumbnail {
+      width: 120px;
+    }
+    .card-thumbnail--placeholder {
+      width: 120px;
+      height: 80px;
+    }
+  }
+</style>

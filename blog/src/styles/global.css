@@ -10,7 +10,9 @@
   --border-color: #ced4da;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -44,7 +46,7 @@ a:hover {
 .blog-layout {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 20px;
 }
 
 @media (min-width: 768px) {
@@ -58,7 +60,7 @@ a:hover {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   padding: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   display: block;
   /* allow text selection inside cards */
   user-select: text !important;
@@ -118,7 +120,7 @@ a:hover {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   padding: 8px 20px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .sidebar-title {
@@ -189,7 +191,7 @@ a:hover {
   border: none;
   border-radius: 12px;
   padding: 16px 24px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   text-align: left;
 }
 
@@ -206,7 +208,7 @@ a:hover {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   padding: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .post-title {
@@ -218,7 +220,7 @@ a:hover {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 /* Force text selection in main column */
