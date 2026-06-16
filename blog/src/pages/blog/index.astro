@@ -5,10 +5,10 @@ import Footer from '../../components/Footer.astro';
 import PostListLayout from '../../components/PostListLayout.astro';
 import { getCollection } from 'astro:content';
 import { sortPosts } from '../../utils/posts';
+import { isPublished } from '../../utils/date';
 
 const allPosts = await getCollection('blog');
-const now = new Date();
-const posts = sortPosts(allPosts.filter(p => new Date(p.data.publishedAt) <= now));
+const posts = sortPosts(allPosts.filter(p => isPublished(p.data.publishedAt)));
 ---
 <Layout title="ブログ" description="TeKeep の最新記事一覧">
   <Header />

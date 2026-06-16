@@ -5,12 +5,13 @@ import Footer from '../../../components/Footer.astro';
 import PostListLayout from '../../../components/PostListLayout.astro';
 import { getCollection } from 'astro:content';
 import { sortPosts } from '../../../utils/posts';
+import { isPublished } from '../../../utils/date';
 
 export const prerender = true;
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  const publishedPosts = posts.filter(p => new Date(p.data.publishedAt) <= new Date());
+  const publishedPosts = posts.filter(p => isPublished(p.data.publishedAt));
 
   const archiveMap = new Map();
   publishedPosts.forEach(post => {

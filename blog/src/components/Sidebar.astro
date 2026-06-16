@@ -1,10 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
 import { sortPosts } from '../utils/posts';
+import { isPublished } from '../utils/date';
 
 const allPosts = await getCollection('blog');
-const now = new Date();
-const publishedPosts = allPosts.filter(p => new Date(p.data.publishedAt) <= now);
+const publishedPosts = allPosts.filter(p => isPublished(p.data.publishedAt));
 
 // Categories
 const categoryMap = new Map();

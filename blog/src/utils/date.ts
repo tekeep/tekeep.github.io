@@ -9,3 +9,20 @@ export function formatDate(dateStr: string | undefined | null): string {
   if (isNaN(d.getTime())) return '';
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
 }
+
+/**
+ * JST（日本時間）基準で今日の日付を "YYYY-MM-DD" 形式で返す。
+ * new Date() の UTC 比較では定時ビルド（JST 01:00 = UTC 16:00 前日）時に
+ * 当日公開の記事が「未来」と誤判定されるため、文字列比較で正しく判定する。
+ */
+export function getTodayJST(): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(new Date());
+}
+
+/**
+ * publishedAt が JST 基準で公開済み（今日以前）かどうかを判定する。
+ * @param publishedAt - "YYYY-MM-DD" 形式の公開日文字列
+ */
+export function isPublished(publishedAt: string): boolean {
+  return publishedAt <= getTodayJST();
+}
