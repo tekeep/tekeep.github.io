@@ -35,12 +35,12 @@ const currentUrl = new URL(Astro.url.pathname, siteUrl).href;
     <!-- Google Analytics (本番環境のみ) -->
     {import.meta.env.PROD && (
       <>
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y15FLWQ7X1"></script>
-        <script>
-          {`window.dataLayer = window.dataLayer || [];
+        <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-Y15FLWQ7X1"></script>
+        <script is:inline>
+          window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-Y15FLWQ7X1');`}
+          gtag('config', 'G-Y15FLWQ7X1');
         </script>
       </>
     )}
