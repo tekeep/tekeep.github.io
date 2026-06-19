@@ -4,11 +4,25 @@ import path from 'path';
 
 const baseUrl = 'https://tekeep.com/blog/';
 
+function getAllFiles(dirPath, arrayOfFiles) {
+  const files = fs.readdirSync(dirPath);
+  arrayOfFiles = arrayOfFiles || [];
+  files.forEach(function(file) {
+    const fullPath = path.join(dirPath, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      arrayOfFiles = getAllFiles(fullPath, arrayOfFiles);
+    } else {
+      arrayOfFiles.push(fullPath);
+    }
+  });
+  return arrayOfFiles;
+}
+
 function buildSitemap() {
   const contentDir = path.resolve('src/content/blog');
   let files = [];
   try {
-    files = fs.readdirSync(contentDir);
+    files = getAllFiles(contentDir);
   } catch (e) {
     console.error('Could not read content directory', e);
     return;
@@ -20,11 +34,11 @@ function buildSitemap() {
   const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(new Date());
   
   const urlEntries = posts.map(f => {
-    const slug = f.replace(/\.mdx?$/, '');
+    const slug = path.basename(f).replace(/\.mdx?$/, '');
     const url = `${baseUrl}${slug}/`;
     
     // Markdownファイルから updatedAt または publishedAt を抽出
-    const content = fs.readFileSync(path.join(contentDir, f), 'utf-8');
+    const content = fs.readFileSync(f, 'utf-8');
     const updateMatch = content.match(/updatedAt:\s*"?([\d-]+)"?/);
     const publishMatch = content.match(/publishedAt:\s*"?([\d-]+)"?/);
     
