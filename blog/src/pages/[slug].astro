@@ -19,10 +19,10 @@ const post = posts.find(p => p.id.split('/').pop() === slug);
 if (!post) {
   throw new Error('Post not found');
 }
-const { title, description, publishedAt, updatedAt, image } = post.data;
+const { title, seoTitle, socialTitle, description, publishedAt, updatedAt, image } = post.data;
 const { Content } = await render(post);
 ---
-<Layout title={title} description={description} image={image}>
+<Layout title={title} seoTitle={seoTitle} socialTitle={socialTitle} description={description} image={image}>
   <Header />
   <main class="container blog-layout">
   <article class="post">
