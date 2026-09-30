@@ -4,6 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="google-site-verification" content="opnaVWnBBcFAFtedRW5myLSWFfqJDEN991GC26uCq-s" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<!-- 1. Googleに新URLが「正規のページ」だと伝えるタグ（SEOの重複ペナルティ防止） -->
+<link rel="canonical" href="https://smartpass.waldfeld.net">
+
+<!-- 2. 10秒後に自動転送するタグ（数字の 10 が秒数です） -->
+<meta http-equiv="refresh" content="10;url=https://smartpass.waldfeld.net">
 <!-- SEO & OGP -->
 <meta name="description" content="TeKeep!は、電車やバスの通勤・通学費を節約するための交通費シミュレーター。無料で始められ、定期券と切符のどちらがお得か簡単に比較できます。あなたの休日設定に合わせて、交通費が最も安くなる購入プランを簡単に見つけ、無駄な出費を抑えましょう。">
 <meta name="keywords" content="定期券, 交通費, 節約, 通勤, 通学, 最安, シミュレーター, TeKeep, テレワーク, 比較, 電車, 1ヶ月定期, 3ヶ月定期, 6ヶ月定期, 休日設定">
@@ -13,10 +19,6 @@
 <meta property="og:url" content="https://tekeep.com">
 <meta property="og:image" content="https://tekeep.com/images/logo.png">
 <meta name="twitter:card" content="summary_large_image">
-<!-- Stripe.jsを読み込む -->
-<script src="https://js.stripe.com/v3/"></script>
-<!-- QRコード生成ライブラリを読み込む -->
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <!-- Favicon Settings -->
 <link rel="icon" href="images/favicon.ico" type="image/x-icon">
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png" sizes="180x180">
@@ -26,327 +28,105 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="css/common.css">
 <link rel="stylesheet" href="css/index.css">
+<style>
+  body {
+    background-color: var(--background-color, #f8f9fa);
+    color: var(--text-color, #0f3854);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .notice-container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--border-color, #ced4da);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 32px 24px;
+    text-align: center;
+  }
+  .notice-badge {
+    display: inline-block;
+    background-color: #e6f9f0;
+    color: #155724;
+    border: 1px solid #cce9d4;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .notice-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-color, #0f3854);
+    margin-bottom: 16px;
+  }
+  .notice-body {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #495057;
+    margin-bottom: 28px;
+  }
+  .notice-btn {
+    display: inline-block;
+    background-color: var(--primary-color, #00c4cc);
+    color: #ffffff !important;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+  .notice-btn:hover {
+    background-color: var(--primary-hover-color, #00a9b0);
+    text-decoration: none;
+  }
+  .header-catchphrase {
+    color: var(--text-color, #0f3854);
+  }
+</style>
 </head>
 <body>
-<div class="share-button-container">
-  <button id="shareBtn" class="share-btn" title="このアプリをシェアする">
-    <i class="fa-solid fa-share-nodes"></i>
-  </button>
-</div>
-<!-- QRコード表示用モーダル -->
-<div id="qrModal" class="qr-modal-overlay" style="z-index: 3000;">
-  <div class="qr-modal-content">
-    <div class="modal-header">
-      <h4>このページをシェア</h4>
-      <button class="modal-close-btn">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div id="qrcode"></div>
-      <p>URLはクリップボードにコピーされました。<br>
-        QRコードをスキャンしてスマホで開くこともできます。</p>
-    </div>
-  </div>
-</div>
-<div class="hamburger-menu">
-  <div class="menu-btn">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-</div>
-<nav class="nav-menu">
-  <ul>
-    <!-- 将来の拡張用のメニュー項目 -->
-    <li><a href="#" id="openPricingModal"><i class="fa-solid fa-fw fa-gem"></i>料金プラン</a></li>
-    <li><a href="#" id="openLicenseForm"><i class="fa-solid fa-fw fa-key"></i>ライセンス認証</a></li>
-    <li><a href="how-to-use.html"><i class="fa-solid fa-fw fa-book-open"></i>使い方</a></li>
-    <li><a href="faq.html"><i class="fa-solid fa-fw fa-circle-question"></i>よくある質問</a></li>
-    <li><a href="blog/"><i class="fa-solid fa-fw fa-newspaper"></i>ブログ</a></li>
-  </ul>
-</nav>
 
-<header style="text-align: center; margin-bottom: 34px;">
-  <a href="." style="text-decoration: none; display: inline-block;">
-    <img src="images/logo.png" alt="TeKeep! - 交通費節約シミュレーターのロゴ" class="logo-img">
-  </a>
-  <h1 class="header-catchphrase" style="font-size: 1.1rem; font-weight: 600; margin-top: 4px; line-height: 1.5;">
-    <span>通勤・通学の交通費を節約する</span>
-    <span class="break-on-mobile">定期券購入シミュレーター</span>
-  </h1>
-</header>
+<div>
+  <header style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+    <a href="." style="text-decoration: none; display: inline-block;">
+      <img src="images/logo.png" alt="TeKeep! - 交通費節約シミュレーターのロゴ" class="logo-img">
+    </a>
+    <h1 class="header-catchphrase" style="font-size: 1.1rem; font-weight: 600; margin-top: 8px; line-height: 1.5;">
+      <span>通勤・通学の交通費を節約する</span>
+      <span class="break-on-mobile">定期券購入シミュレーター</span>
+    </h1>
+  </header>
 
-<!-- ライセンス認証モーダル -->
-<div id="licenseModal" class="modal-overlay" style="--modal-max-width: 500px;">
-  <div class="modal-content" style="height: auto; max-width: var(--modal-max-width);">
-    <div class="modal-header">
-      <h4>ライセンス認証</h4>
-      <button class="modal-close-btn">&times;</button>
-    </div>
-    <iframe id="licenseIframe" src="license.html" style="width: 100%; border: 0; display: block; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"></iframe>
-  </div>
-</div>
-
-<!-- お問い合わせモーダル -->
-<div id="contactModal" class="modal-overlay">
-  <div class="modal-content" style="height: 90%;">
-    <div class="modal-header">
-      <h4>お問い合わせフォーム</h4>
-      <button class="modal-close-btn">&times;</button>
-    </div>
-    <div class="modal-body">
-      <iframe id="contactIframe" src="" frameborder="0" marginheight="0" marginwidth="0">読み込んでいます…</iframe>
-    </div>
-  </div>
-</div>
-
-<!-- 料金プランモーダル -->
-<div id="pricingModal" class="modal-overlay">
-  <div class="modal-content" style="height: auto; max-width: 860px;">
-    <div class="modal-header">
-      <h4>料金プラン</h4>
-      <button class="modal-close-btn">&times;</button>
-    </div>
-    <iframe id="pricingIframe" src="pricing.html" style="width: 100%; border: 0; display: block; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"></iframe>
-  </div>
-</div>
-
-<!-- 特定商取引法に基づく表記モーダル -->
-<div id="tokushohoModal" class="modal-overlay">
-  <div class="modal-content" style="height: 90%; max-width: 700px;">
-    <div class="modal-header">
-      <h4>特定商取引法に基づく表記</h4>
-      <button class="modal-close-btn">&times;</button>
-    </div>
-    <div class="modal-body">
-      <iframe id="tokushohoIframe" src="tokushoho.html" style="width: 100%; height: 100%; border: 0;"></iframe>
-    </div>
-  </div>
-</div>
-
-<!-- 決済埋め込み用モーダル -->
-<div id="paymentModal" class="modal-overlay">
-  <div class="modal-content" style="height: auto; max-width: 500px;">
-    <div class="modal-header">
-      <h4>お支払い情報の入力</h4>
-      <button class="modal-close-btn">&times;</button>
-    </div>
-    <div class="payment-modal-body">
-      <div id="checkout"></div>
-    </div>
-  </div>
-</div>
-
-<!-- デバイス名設定モーダル -->
-<div id="deviceNameModal" class="modal-overlay">
-  <div class="modal-content" style="height: auto; max-width: 500px;">
-    <div class="modal-header">
-      <h4>デバイス名の設定</h4>
-      <!-- このモーダルは閉じさせない -->
-    </div>
-    <div class="modal-body" style="padding: 20px;">
-      <p style="font-size: 14px; line-height: 1.6; margin-top: 0;">
-        このデバイスを識別するための名前を設定してください。<br>
-        この名前は、後からライセンス情報画面で変更できます。
-      </p>
-      <div id="deviceNameMessage" class="message-area error" style="margin-top: 16px; display: none;"></div>
-      <input type="text" id="deviceNameInput" placeholder="例: 自宅のPC, 通勤用のスマホ" style="margin-top: 16px;">
-      <button id="submitDeviceNameBtn" class="copy-btn" style="margin-top: 8px;">決定</button>
-    </div>
-  </div>
-</div>
-
-<!-- 決済完了・ライセンスキー表示モーダル -->
-<div id="paymentSuccessModal" class="modal-overlay">
-  <div class="modal-content" style="height: auto; max-width: 500px;">
-    <div class="modal-header">
-      <h4>お支払いありがとうございます</h4>
-      <button class="modal-close-btn" style="display: none;">&times;</button>
-    </div>
-    <div class="modal-body" style="padding: 20px;">
-      <p id="paymentSuccessMessage" style="font-size: 14px; line-height: 1.6; margin-top: 0;">決済情報を確認しています...</p>
-      <!-- 認証済み情報表示エリア -->
-      <div id="authInfoContainer" style="display: none;">
-        <div class="plan-display-box">
-          <strong id="purchasedPlanName" class="info-value"></strong>
-        </div>
-        <div class="payment-info-group">
-          <span class="info-label" style="font-weight: 600;">ライセンスキー:</span>
-          <strong id="licenseKeyDisplay" style="font-family: monospace; letter-spacing: 1px; display: block; margin-top: 4px; background-color: #f8f9fa; padding: 8px; border-radius: 6px; text-align: center;"></strong>
-          <button id="copyLicenseKeyBtn" class="copy-key-btn" style="display: none;"><i class="fa-solid fa-copy"></i>キーをコピー</button>
-        </div>
-        <div class="payment-info-group">
-          <span class="info-label" style="font-weight: 600;">有効期限:</span> <strong id="purchasedExpiresAt" class="info-value"></strong>
-        </div>
-        <!-- デバイス名設定フォーム -->
-        <div id="setDeviceNameContainer" style="display: none; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--light-gray);">
-            <p style="font-size: 14px; line-height: 1.6; margin-top: 0;">
-              最後に、このデバイスを識別するための名前を設定してください。<br>
-              この名前は、後からライセンス情報画面で変更できます。
-            </p>
-            <div id="paymentSuccessDeviceNameMessage" class="message-area error" style="margin-top: 16px; display: none;"></div>
-            <input type="text" id="paymentSuccessDeviceNameInput" placeholder="例: 自宅のPC, 通勤用のスマホ" style="margin-top: 16px;">
-            <button id="submitPaymentSuccessDeviceNameBtn" class="copy-btn" style="margin-top: 8px;">決定して利用を開始する</button>
-        </div>
-      </div>
-      <p class="payment-success-footer-note" style="font-size: 13px; color: #6c757d; margin-top: 16px; display: none;">この画面を閉じると、購入したプランが使えるようになります。</p>
-      <p class="payment-success-footer-note" style="font-size: 12px; color: #6c757d; margin-top: 8px; display: none;">ライセンスキーは、後から「ライセンス情報」画面でいつでもコピーできます。</p>
-    </div>
-  </div>
-</div>
-
-<div id="inputScreen">
-  <div class="input-container">
-    <div class="input-col">
-      <div class="input-section">
-        <div class="section-header">
-          <span style="background: var(--primary-color); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; line-height: 1; padding-right: 1px; box-sizing: border-box;">1</span>
-          <h3>交通費（運賃・定期代）を入力</h3>
-        </div>
-        <div class="input-group">
-          <label for="fare">片道運賃（円）</label>
-          <input type="text" id="fare" placeholder="例: 280" inputmode="numeric">
-        </div>
-        <div class="input-group">
-          <label class="toggle-switch" for="includeOneMonthPass" style="justify-content: space-between; width: 100%; margin-bottom: 8px;">
-            <span class="toggle-label">1ヶ月定期（円）</span>
-            <span><input type="checkbox" id="includeOneMonthPass" checked><span class="slider"></span></span>
-          </label>
-          <div id="oneMonthPassInput" style="display: block;" class="input-with-unit">
-            <input type="text" id="monthlyPass" placeholder="例: 10000" inputmode="numeric">
-          </div>
-        </div>
-        <div class="input-group">
-          <label class="toggle-switch" for="includeThreeMonthPass" style="justify-content: space-between; width: 100%; margin-bottom: 8px;">
-            <span class="toggle-label">3ヶ月定期（円）</span>
-            <span><input type="checkbox" id="includeThreeMonthPass"><span class="slider"></span></span>
-          </label>
-          <div id="threeMonthPassInput" style="display: none;" class="input-with-unit">
-            <input type="text" id="threeMonthPass" placeholder="例: 28500" inputmode="numeric">
-          </div>
-        </div>
-        <div class="input-group">
-          <label class="toggle-switch" for="includeSixMonthPass" style="justify-content: space-between; width: 100%; margin-bottom: 8px;">
-            <span class="toggle-label">6ヶ月定期（円）</span>
-            <span><input type="checkbox" id="includeSixMonthPass"><span class="slider"></span></span>
-          </label>
-          <div id="sixMonthPassInput" style="display: none;" class="input-with-unit">
-            <input type="text" id="sixMonthPass" placeholder="例: 54000" inputmode="numeric">
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="input-col">
-      <div class="input-section">
-        <div class="section-header">
-          <span style="background: var(--primary-color); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; line-height: 1;">2</span>
-          <h3>シミュレーション期間を設定</h3>
-        </div>
-        <div class="input-group">
-          <label for="startDate">シミュレーション開始日</label>
-          <input type="date" id="startDate">
-        </div>
-        <div class="input-group">
-          <label for="duration">シミュレーション期間（ヶ月）</label>
-          <select id="duration">
-            <!-- 2ヶ月から12ヶ月までの選択肢をここに生成 -->
-          </select>
-        </div>
-        <div id="upgrade-notice" class="upgrade-notice-footer">
-          <i class="fa-solid fa-gem" style="color: var(--primary-color);"></i>
-          <a href="#" id="open-pricing-from-notice">有料プラン</a>にアップグレードすると、<strong>数千円以上の節約</strong>につながることも。最大24ヶ月までシミュレーションできます。
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="input-container" style="margin-top: 20px;">
-    <div class="input-col" style="flex-basis: 100%; max-width: 100%;">
-      <div class="input-section">
-        <div class="section-header">
-          <span style="background: var(--primary-color); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; line-height: 1;">3</span>
-          <h3>休日を設定</h3>
-        </div>
-        <div class="input-group">
-          <!-- 「曜日ごとの設定」を小見出しとしてスタイル調整 -->
-          <label style="margin-bottom: 12px;">曜日ごとの設定</label>
-          <!-- 各曜日設定をインデントして親子関係を明確化 -->
-          <div class="day-settings-list" style="padding-left: 8px;">
-            <!-- 曜日ごとの設定カードをここに生成 -->
-          </div>
-        </div>
-        <div class="input-group">
-          <label id="holidayToggleLabel" class="toggle-switch" for="includeHolidays" style="justify-content: space-between; width: 100%; margin-bottom: 8px;">
-            <span class="toggle-label">祝日を休みに含む</span>
-            <span><input type="checkbox" id="includeHolidays" checked><span class="slider"></span></span>
-          </label>
-        </div>
-        <div class="input-group">
-          <label style="margin-bottom: 12px;">カスタム休日・勤務日</label>
-          <p style="font-size: 14px; color: #495057; margin-top: -8px; margin-bottom: 16px;">カレンダーの日付をクリックして、休日や勤務日を個別に設定できます。</p>
-          <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: -12px; margin-bottom: 8px;">
-            <label style="background: none; color: #495057; padding: 0; font-weight: 500; display: inline; margin-right: 6px;">週の始まり:</label>
-            <input type="radio" name="weekStart" value="0" id="weekStartSun" style="width: auto; margin-right: 4px; position: relative; top: -6px;" checked><label for="weekStartSun" style="background: none; color: #495057; padding: 0; font-weight: normal; display: inline; margin-right: 6px;">日曜</label>
-            <input type="radio" name="weekStart" value="1" id="weekStartMon" style="width: auto; margin-right: 4px; position: relative; top: -6px;"><label for="weekStartMon" style="background: none; color: #495057; padding: 0; font-weight: normal; display: inline;">月曜</label>
-          </div>
-          <div class="legend" style="margin-top: 5px; font-size: 13px; display: flex; flex-wrap: wrap; gap: 14px;">
-            <span style="display: flex; align-items: center; gap: 4px;"><i style="display:inline-block; width:16px; height:14px; background-color: #fff0f0; border: 1px solid #fecaca; border-radius: 2px;"></i> : 通常休日</span>
-            <span style="display: flex; align-items: center; gap: 4px;"><i style="display:inline-block; width:16px; height:14px; background-color: #fff5e6; border: 1px solid #ffe8cc; border-radius: 2px;"></i> : カスタム休日</span>
-            <span style="display: flex; align-items: center; gap: 4px;"><i style="display:inline-block; width:16px; height:14px; background-color: #e6f9f0; border: 1px solid #cce9d4; border-radius: 2px;"></i> : カスタム勤務日</span>
-          </div>
-          <ul id="custom-dates-tags" class="holiday-tags" style="min-height: 28px;"></ul>
-          <div class="setting-calendar-container" id="settingCalendarView"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="bottomBtn">
-  <button id="calculateBtn" style="display: block; max-width: 980px; margin: 0 auto; width: calc(100% - 30px);">計算する</button>
-  <button id="recalculateBtn" style="display:none;">再計算する</button>
-</div>
-
-<!-- ▼▼▼ 広告表示エリア ▼▼▼ -->
-<div id="ad-container-index" style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; margin-top: 24px; text-align: center;">
-  <!-- Amazonアソシエイト おすすめ商品ウィジェット -->
-  <script type="text/javascript">
-    amzn_assoc_placement = "adunit0";
-    amzn_assoc_tracking_id = "tekeep-22";
-    amzn_assoc_ad_mode = "search";
-    amzn_assoc_ad_type = "smart";
-    amzn_assoc_marketplace = "amazon";
-    amzn_assoc_region = "JP";
-    amzn_assoc_default_search_phrase = "節約"; // 検索キーワード
-    amzn_assoc_search_bar = "false"; // 検索バー非表示
-  </script>
-  <script src="//z-fe.amazon-adsystem.com/widgets/onejs?MarketPlace=JP"></script>
-</div>
-<!-- ▲▲▲ 広告表示エリア ▲▲▲ -->
-
-<div class="notice-box">
-  <div>
-    <div class="notice-header">
-      <svg xmlns="http://www.w3.org/2000/svg" height="22" viewBox="0 -960 960 960" width="22" fill="currentColor"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Z"/></svg>
-      <strong style="font-size: 16px;">ご注意</strong>
-    </div>
-    <div style="font-size: 13px; color: #495057; line-height: 1.6;">
-      TeKeep!（テイキープ）は、入力された情報に基づき、数学的に最も交通費が安くなる購入パターンを計算するツールです。会社から交通費が支給されている場合など、本シミュレーション結果の利用は、ご所属の組織の規定に従ってください。本ツールの利用は、利用者の自己責任において行ってください。
-    </div>
-  </div>
+  <main class="notice-container">
+    <span class="notice-badge">サービス移転のお知らせ</span>
+    <h2 class="notice-title">「Smart Pass」へリニューアル・移転いたしました</h2>
+    <p class="notice-body">
+      TeKeep! をご利用いただきありがとうございます。<br>
+      当サービスは「Smart Pass」へと統合・リニューアルいたしました。<br><br>
+      10秒後に自動的に新しいサイトへ移動します。
+    </p>
+    <a href="https://smartpass.waldfeld.net" class="notice-btn">
+      Smart Pass へ移動する <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i>
+    </a>
+  </main>
 </div>
 
 <footer>
-  <a href="#" id="openContactFooter">お問い合わせ</a>|
-  <a href="#" id="openTokushohoModal">特定商取引法に基づく表記</a>|
   <a href="blog/">ブログ</a>
-  <div style="margin-top: 8px;">&copy; 2025-2026 TeKeep!</div>
+  <div style="margin-top: 8px;">&copy; 2025-2026 TeKeep! / Smart Pass</div>
 </footer>
 
-<!-- SupabaseのJavaScriptクライアントライブラリを読み込む -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- 外部スクリプトの読み込み -->
-<script type="module" src="js/ga.js"></script>
-<script type="module" src="js/ui.js"></script>
-<script type="module" src="js/index.js"></script>
+<script>
+  setTimeout(function() {
+    window.location.href = "https://smartpass.waldfeld.net";
+  }, 10000);
+</script>
 </body>
 </html>
