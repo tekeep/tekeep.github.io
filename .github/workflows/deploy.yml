@@ -27,22 +27,14 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies
-        working-directory: ./blog
-        run: npm ci
-
-      - name: Build Astro blog
-        working-directory: ./blog
-        run: npm run build
-
       - name: Prepare deployment directory
         run: |
           mkdir _site
-          # LPのファイル群を_siteにコピー (blogディレクトリやGit関連は除く)
+          # LPのファイル群を_siteにコピー (ブログのソースやGit関連は除く)
           rsync -av --exclude='_site' --exclude='.git' --exclude='.github' --exclude='blog' --exclude='TeKeepDevelopData' ./ _site/
-          # ビルド済みのブログを _site/blog にコピー
+          # 旧ブログは本文を公開せず、トップだけ即時転送する
           mkdir -p _site/blog
-          cp -r blog/dist/* _site/blog/
+          cp blog-redirect-index.html _site/blog/index.html
           # Jekyllによるエラーを回避
           touch _site/.nojekyll
 

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex">
+  <title>ページが見つかりません</title>
+</head>
+<body>
+  <p>ページを移動しています…</p>
+  <script>
+    const path = window.location.pathname;
+    if (path === '/blog' || path.startsWith('/blog/')) {
+      window.location.replace('https://smartpass.waldfeld.net' + path + window.location.search + window.location.hash);
+    }
+  </script>
+</body>
+</html>
